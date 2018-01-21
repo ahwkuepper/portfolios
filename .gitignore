@@ -1,0 +1,8 @@
+*.DS_Store*
+*.csv
+*.pdf
+*__pycache__*
+*.ipynb_checkpoints*
+*dev_*
+*.idea*
+*~
