@@ -11,6 +11,12 @@ Gather data, compute statistics and make predictions on ETFs or securities in ge
 Simple forecasting models.
 
 
+Basic methods:
+
+- resampling
+- run rates
+
+
 ## Specifications and requirements
 
 Uses data from Yahoo! Finance.
