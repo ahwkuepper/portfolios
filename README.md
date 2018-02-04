@@ -1,5 +1,7 @@
 # ETFs
 
+Install with `pip install -e setup.py`
+
 
 ## Purpose
 
