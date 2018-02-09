@@ -1,0 +1,7 @@
+README.md
+etfs/__init__.py
+etfs.egg-info/PKG-INFO
+etfs.egg-info/SOURCES.txt
+etfs.egg-info/dependency_links.txt
+etfs.egg-info/requires.txt
+etfs.egg-info/top_level.txt

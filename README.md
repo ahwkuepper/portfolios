@@ -5,7 +5,7 @@ Install with `pip install -e setup.py`
 
 ## Purpose
 
-Gather data, compute statistics and make predictions on ETFs or securities in general.
+Gather data, compute statistics and make predictions securities with a focus on ETFs.
 
 
 ## Models and methods
@@ -36,4 +36,4 @@ None so far.
 
 ## Documentation
 
-See Jupyter notebook for examples.
+See Jupyter notebook for examples. More to follow.

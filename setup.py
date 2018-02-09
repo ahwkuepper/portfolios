@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 with open('README.md') as f:
@@ -13,14 +13,13 @@ with open('LICENSE') as f:
 setup(
     name = 'etfs',
     packages = ['etfs'],
-    version='0.1.0',
-    description='',
+    version='0.1',
+    description='Gather data, compute statistics and make predictions securities with a focus on ETFs.',
     long_description=readme,
     author='Andreas Kupper',
     author_email='',
     url='https://github.com/ahwkuepper/etfs',
     license=license,
-    packages=find_packages(exclude=('notebooks', 'data')),
     install_requires = [
         'pandas', 'numpy'
        ]
