@@ -12,10 +12,16 @@
 #  - Price at date
 #  - Difference in prices
 #  + Min / Max price
+#  + Mean / median price
+#  + Standard deviation
 #  - Runrate
-#  - Rolling weighted average
-#  - Volatility
+#  - Rolling weighted average (with different weighting functions)
+#  - Volatility (historical / implied / epxonentially weighted)
 #  - Predictions (like runrate, RWA, autoregressive model)
+#  - Comparisons against other securities or indices:
+#        - R^2
+#        - Beta
+
 
 from etfs.io.helpers import read_yahoo_csv, retrieve_yahoo_quote
 
@@ -45,7 +51,18 @@ class security(object):
         except:
             self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start.replace('-', ''), enddate=end.replace('-', ''))
         else:
-        	pass
+            pass
+
+    def refresh(self, start='1900-01-01', end='2100-01-01'):
+        '''
+        Tries to load from csv first, then pulls from Yahoo!
+        '''
+        try:
+            self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start.replace('-', ''), enddate=end.replace('-', ''))
+            filepath = '../data/{0}.csv'.format(self.ticker)
+            self.data.to_csv(path=filepath, header=True, index=True)
+        except:
+            print('Refresh failed')
 
     def get_last_price(self, column='Close'):
         self.last_price = self.data[column][-1]

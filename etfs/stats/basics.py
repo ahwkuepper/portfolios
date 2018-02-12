@@ -1,23 +1,23 @@
 import numpy as np
 
 def runrate_column(df=None, column=None, window=5, win_type=None):
-   '''
-   Calculate the run rate, that is, the moving average,
-   of a column, and add it as a new column 
-   '''
-   
-   column_rr = column + '_rr' + str(window)
-   df[column_rr] = df[column].rolling(window=window, win_type=win_type).mean()
+    '''
+    Calculate the run rate, that is, the moving average,
+    of a column, and add it as a new column 
+    '''
+    
+    column_rr = column + '_rr' + str(window)
+    df[column_rr] = df[column].rolling(window=window, win_type=win_type).mean()
 
-   return df
+    return df
 
 
 def resample_df(df=None, column=None, resolution='B'):
-   '''
-   Resample data with new resolution, return as new dataframe
-   '''
-   
-   return df.resample(resolution).agg({column: ['mean', 'std', 'median']})
+    '''
+    Resample data with new resolution, return as new dataframe
+    '''
+
+    return df.resample(resolution).agg({column: ['mean', 'std', 'median']})
  
 
 def shift_column(df=None, column=None, shift=1):
@@ -31,28 +31,31 @@ def shift_column(df=None, column=None, shift=1):
     return df
 
 
-def volatility_column(df=None, column=None, window=5, shift=1):
-   '''
-   Calculate the standard deviation of data - run rate
-   '''
-   from pandas.tseries import offsets
-   
-   column_rr = column + '_rr' + str(window)
-   print("Calculating '{0}' run rate for window size {1}".format(column, window))
-   df = runrate_column(df=df, column=column, window=window)
+def return_column(df=None, column=None, window=1, shift=1):
+    '''
+    Calculate the standard deviation of data - run rate
+    '''
+    from pandas.tseries import offsets
 
-   column_shift = column_rr + '_sh' + str(shift)
-   df = shift_column(df=df, column=column_rr, shift=shift)
+    if window > 1:
+        column_rr = column + '_rr' + str(window)
+        print("Calculating '{0}' run rate for window size {1}".format(column, window))
+        df = runrate_column(df=df, column=column, window=window)
+    else:
+        column_rr = column
 
-   column_volatility = column_shift + '_vol'
-   df[column_volatility] = df[column_rr]-df[column_shift]
+    column_shift = column_rr + '_sh' + str(shift)
+    df = shift_column(df=df, column=column_rr, shift=shift)
 
-   column_squared_error = column_shift + '_sqerr'
-   df[column_squared_error] = np.square(df[column_volatility])
+    column_return = column_shift + '_ret'
+    df[column_return] = (df[column_rr]-df[column_shift])/df[column_rr]
 
-   print("Average volatility of '{0}' is {1}".format(column, np.sqrt(df[column_squared_error].mean())))
+    column_squared_error = column_shift + '_sqerr'
+    df[column_squared_error] = np.square(df[column_return])
 
-   return df
+    print("Average volatility of '{0}' is {1}".format(column, np.sqrt(df[column_squared_error].mean())))
+
+    return df
 
 
 def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
