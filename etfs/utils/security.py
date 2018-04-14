@@ -6,6 +6,10 @@
 #  + Ticker symbol
 #  + Name 
 #  - Description
+#  - SEC regulatory filings (see I/O)
+#
+# Create containers for special security types like treasury bonds
+# https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yieldAll
 #
 # Methods:
 #  + Current price
@@ -14,14 +18,30 @@
 #  + Min / Max price
 #  + Mean / median price
 #  + Standard deviation
-#  - Runrate
+#  - Variability
+#  + Runrate
 #  - Rolling weighted average (with different weighting functions)
 #  - Volatility (historical / implied / epxonentially weighted)
 #  - Predictions (like runrate, RWA, autoregressive model)
 #  - Comparisons against other securities or indices:
 #        - R^2
 #        - Beta
-
+#        - Sharpe ratio
+#  - Performance:
+#        - YTD
+#        - 52 week
+#        - 5 year 
+#        - 10 year
+#        - average annual return
+#        - compared to another security
+#        - compared to GDP growth / inflation
+#        - real return
+#        - momentum (time interval x)
+# - Analysis
+#        - Donchian Channels
+#        - Bollinger Bands
+#        - STARC Bands
+#        - Keltner Channels
 
 from etfs.io.helpers import read_yahoo_csv, retrieve_yahoo_quote
 
@@ -60,7 +80,9 @@ class security(object):
         try:
             self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start.replace('-', ''), enddate=end.replace('-', ''))
             filepath = '../data/{0}.csv'.format(self.ticker)
-            self.data.to_csv(path=filepath, header=True, index=True)
+            print(filepath)
+            self.data.index.name = 'Date'
+            self.data.to_csv(filepath, header=True, index=True)
         except:
             print('Refresh failed')
 

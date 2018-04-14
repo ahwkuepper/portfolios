@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.stats import linregress
+
 
 def runrate_column(df=None, column=None, window=5, win_type=None):
     '''
@@ -70,9 +72,20 @@ def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
     return startdate, startvalue, enddate, endvalue, endvalue-startvalue, (endvalue-startvalue)/startvalue
 
 
+def rsq(sec1=None, sec2=None):
+    '''
+    Function that returns R^2 correlation measure between two securities
+    :param sec1: First security (object of class security)
+    :param sec2: Second security
+    :return: R^2
+    '''
 
+    mindate = max(sec1.data.index.min(), sec2.data.index.min())
+    maxdate = min(sec1.data.index.max(), sec2.data.index.max())
+    slope, intercept, r_value, p_value, std_err = linregress(sec1.data.loc[(sec1.data.index >= mindate) & (sec1.data.index <= maxdate), 'Close'].values,
+                                                             sec2.data.loc[(sec2.data.index >= mindate) & (sec2.data.index <= maxdate), 'Close'].values)
 
-
+    return r_value**2
 
 
 

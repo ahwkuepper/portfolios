@@ -1,3 +1,11 @@
+# To do:
+# Use API or write script to access SEC's EDGAR database
+# https://www.sec.gov/oiea/Article/edgarguide.html
+# https://www.sec.gov/developer
+# https://github.com/datasets/edgar
+# 
+
+
 import pandas as pd
 import numpy as np
 from etfs.io import yqd
@@ -33,6 +41,10 @@ def retrieve_yahoo_quote(ticker=None, startdate='19000101', enddate='21000101'):
 
    # Turn into pandas dataframe
    df = pd.DataFrame(data, columns=columns, index=index, dtype=np.float32)
+
+   # Drop nulls
+   col_list = ['Close', 'Volume']
+   df = df.dropna(subset=[col_list], how='any')
 
    # Convert index to datetime
    df.index = pd.to_datetime(df.index)
