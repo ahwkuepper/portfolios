@@ -11,7 +11,7 @@ import numpy as np
 from etfs.io import yqd
 
 
-def read_yahoo_csv(path=None, startdate='1900-01-01', enddate='2100-01-01'):
+def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
    '''
    Read locally stored csv with data from Yahoo! Finance for a security.
 
@@ -22,7 +22,7 @@ def read_yahoo_csv(path=None, startdate='1900-01-01', enddate='2100-01-01'):
    return df.loc[(df.index >= startdate) & (df.index <= enddate)]
 
 
-def retrieve_yahoo_quote(ticker=None, startdate='19000101', enddate='21000101'):
+def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101'):
    '''
    Download data from Yahoo! Finance for a security.
 
