@@ -5,18 +5,20 @@ Install with `pip install -e setup.py`
 
 ## Purpose
 
-Gather data, compute statistics and make predictions securities with a focus on ETFs.
+Gather data, compute statistics, and make predictions on securities with a focus on ETFs.
 
 
 ## Models and methods
 
-Simple forecasting models.
+So far only basic functionality.
 
 
 Basic methods:
 
 - resampling
 - run rates
+- variance
+- R^2 between securities
 
 
 ## Specifications and requirements
