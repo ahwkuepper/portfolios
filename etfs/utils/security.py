@@ -1,11 +1,11 @@
-# Class that holds a single security
-# And some useful functions
-
 from etfs.io.helpers import read_yahoo_csv, retrieve_yahoo_quote
 from os import path
 
 
 class security(object):
+    '''
+       Class that holds a single security and some useful functions
+    '''
 
     def __init__(self, name, start='2000-01-01', end='2100-01-01'):
         self.ticker = name

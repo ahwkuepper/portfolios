@@ -16,7 +16,7 @@ def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
    Read locally stored csv with data from Yahoo! Finance for a security.
 
    '''
-
+   
    df = pd.read_csv(path, index_col='Date', parse_dates=True)
 
    return df.loc[(df.index >= startdate) & (df.index <= enddate)]
