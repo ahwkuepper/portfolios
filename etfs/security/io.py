@@ -8,7 +8,7 @@
 
 import pandas as pd
 import numpy as np
-from etfs.io import yqd
+from etfs.security import yqd
 
 
 def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
@@ -53,7 +53,4 @@ def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101'):
    df.Volume = df.Volume.astype(np.int32)
 
    return df
-
-
-
 

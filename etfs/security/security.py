@@ -1,4 +1,4 @@
-from etfs.io.helpers import read_yahoo_csv, retrieve_yahoo_quote
+from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote
 from os import path
 
 
@@ -16,6 +16,7 @@ class security(object):
         self.get_median_price()
         self.get_mean_price()
         self.get_std_price()
+        self.dividends = 0.0
 
     def set_name(self, name):
         self.name = name
@@ -69,3 +70,6 @@ class security(object):
 
     def get_price_at(self, date, column='Close'):
         return self.data.loc[self.data.index == date, column].values[0]
+
+    def dividend(self, currency, price, quantity):
+        self.dividends = self.dividends + price*quantity
