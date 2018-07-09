@@ -15,7 +15,11 @@ class portfolio(object):
         self.transactions = pd.DataFrame(columns=['Date', 'Ticker', 'Quantity', 'Price', 'TradeValue'])
         self.dividends = pd.DataFrame(columns=['Date', 'Ticker', 'Amount'])
         self.payments = pd.DataFrame(columns=['Date', 'In', 'Out'])
+        self.total_portfolio_value = 0.0
+        self.total_security_value = 0.0
         self.cash = 0.0
+        self.return_value = 0.0
+        self.return_rate = 0.0
         self.index = 0
 
     def __iter__(self):
@@ -157,13 +161,28 @@ class portfolio(object):
                  }
             self.overview_df = pd.DataFrame(data=_d, index=[''])
 
+
+        # update portfolio stats
+        self.total_portfolio_value = self.overview_df[['CurrentValue']].sum().values[0] + self.cash
+        self.total_security_value = self.overview_df[['CurrentValue']].sum().values[0]
+        self.return_value = self.overview_df[['CurrentValue']].sum().values[0] + self.cash - self.payments['In'].sum()
+        if self.total_portfolio_value:
+            self.return_rate = self.return_value/self.total_portfolio_value
+        else:
+            self.return_rate = 0.0
+
+
         print(self.overview_df[['Quantity', 'AvgPrice', 'LastPrice', 'TradeValue', 'CurrentValue', 'Dividends', 'Return']])
         print()
-        print("Total portfolio value:\t{0:8.2f} USD\nTotal security value:\t{1:8.2f} USD\nCash in wallet:\t\t{2:8.2f} USD\nTotal return:\t\t{3:8.2f} USD".format(
-            self.overview_df[['CurrentValue']].sum().values[0] + self.cash,
-            self.overview_df[['CurrentValue']].sum().values[0], 
+        print("Total portfolio value:\t{0:8.2f} USD\nTotal security value:\t{1:8.2f} USD\nCash in wallet:\t\t{2:8.2f} USD\nTotal return:\t\t{3:8.2f} USD\t({4:.2f}%)".format(
+            self.total_portfolio_value,
+            self.total_security_value, 
             self.cash,
-            self.overview_df[['CurrentValue']].sum().values[0] + self.cash - self.payments['In'].sum()))
+            self.return_value,
+            self.return_rate*100.0
+            )
+        )
+
 
     def positions(self):
         # you have to have one security in the portfolio for meaningful output
