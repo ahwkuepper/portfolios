@@ -1,4 +1,4 @@
 import datetime
 
-NOW = datetime.datetime.now()
-TODAY = '{0}{1:02}{2:02}'.format(NOW.year, NOW.month, NOW.day)
+def todays_date():
+    return '{0}{1:02}{2:02}'.format(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)
