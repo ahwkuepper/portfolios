@@ -13,7 +13,7 @@ class portfolio(object):
         self.name = name
         self.securities = {}
         self.tickers = []
-        self.transactions = pd.DataFrame(columns=['Date', 'Ticker', 'Quantity', 'Price', 'TradeValue'], dty)
+        self.transactions = pd.DataFrame(columns=['Date', 'Ticker', 'Quantity', 'Price', 'TradeValue'])
         self.dividends = pd.DataFrame(columns=['Date', 'Ticker', 'Amount'])
         self.payments = pd.DataFrame(columns=['Date', 'In', 'Out'])
         self.wallet = pd.DataFrame(columns=['Date', 'Cash'])
@@ -43,12 +43,9 @@ class portfolio(object):
 
     def deposit_cash(self, date, currency='USD', price=1.0, quantity=0):
         self.cash = self.cash + quantity*price
-        if date in self.wallet.Date:
-            self.wallet.at[self.wallet.Date == date, 'Cash'] = self.cash
-        else:
-            self.wallet = self.wallet.append({'Date': date,
-                                              'Cash': self.cash
-                                              }, ignore_index=True)
+        self.wallet = self.wallet.append({'Date': date,
+                                          'Cash': self.cash
+                                          }, ignore_index=True)
 
         self.payments = self.payments.append({'Date': date,
                                               'In': 1.0*price*quantity,
@@ -58,12 +55,10 @@ class portfolio(object):
 
     def withdraw_cash(self, date, currency='USD', price=1.0, quantity=0):
         self.cash = self.cash - quantity*price
-        if date in self.wallet.Date:
-            self.wallet.at[self.wallet.Date == date, 'Cash'] = self.cash
-        else:
-            self.wallet = self.wallet.append({'Date': date,
+        self.wallet = self.wallet.append({'Date': date,
                                           'Cash': self.cash
                                           }, ignore_index=True)
+
     
         self.payments = self.payments.append({'Date': date,
                                               'In': 0.0,
@@ -76,12 +71,10 @@ class portfolio(object):
 
     def dividend(self, date, ticker='', currency='USD', price=1.0, quantity=0):
         self.cash = self.cash + quantity*price
-        if date in self.wallet.Date:
-            self.wallet.at[self.wallet.Date == date, 'Cash'] = self.cash
-        else:
-            self.wallet = self.wallet.append({'Date': date,
-                                              'Cash': self.cash
-                                              }, ignore_index=True)
+        self.wallet = self.wallet.append({'Date': date,
+                                          'Cash': self.cash
+                                          }, ignore_index=True)
+
 
         print("Cash balance: {0:.2f} {1}".format(self.cash,currency))
 
@@ -115,12 +108,10 @@ class portfolio(object):
         self.cash = self.cash - quantity*price
 
         # store point in time value in wallet
-        if date in self.wallet.Date:
-            self.wallet.at[self.wallet.Date == date, 'Cash'] = self.cash
-        else:
-            self.wallet = self.wallet.append({'Date': date,
-                                              'Cash': self.cash
-                                              }, ignore_index=True)
+        self.wallet = self.wallet.append({'Date': date,
+                                          'Cash': self.cash
+                                          }, ignore_index=True)
+
 
         # store transaction in df
         self.transactions = self.transactions.append({'Date': date,
@@ -136,12 +127,10 @@ class portfolio(object):
         self.cash = self.cash + quantity*price
 
         # store point in time value in wallet
-        if date in self.wallet.Date:
-            self.wallet.at[self.wallet.Date == date, 'Cash'] = self.cash
-        else:
-            self.wallet = self.wallet.append({'Date': date,
-                                              'Cash': self.cash
-                                              }, ignore_index=True)
+        self.wallet = self.wallet.append({'Date': date,
+                                          'Cash': self.cash
+                                          }, ignore_index=True)
+
 
         # get closing price of security for transaction date if price not provided
         if np.isnan(price):
@@ -268,9 +257,20 @@ class portfolio(object):
 
     def get_timeseries(self):
 
+        # get date range from the transaction list
         self.min_date = self.transactions.Date.min()
         self.max_date = todays_date()
 
-        print(self.min_date, self.max_date)
+        # make a list of days between min and max date as index for timeseries df
+        date_index = pd.date_range(self.min_date, self.max_date, freq='D')
+        ts = pd.Series(range(len(date_index)), index=date_index)
 
-        return 
+        # create timeseries df from date index and wallet entries
+        df_ts = ts.to_frame('Day').join(self.wallet.groupby(by='Date').last(), how='left').fillna(method='ffill')
+
+        # join in daily price data for each security
+        for security in self.securities:
+            df_ts = df_ts.join(self.securities[security].data['Close'], how='left', rsuffix='_{}'.format(self.securities[security].ticker)).fillna(method='ffill')
+
+        self.timeseries = df_ts
+
