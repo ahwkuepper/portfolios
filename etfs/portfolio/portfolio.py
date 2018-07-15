@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
+import datetime
 from etfs.security import security
 from etfs.utils.helpers import todays_date
+from etfs.stats.basics import rsq
 
 
 class portfolio(object):
@@ -12,7 +14,9 @@ class portfolio(object):
     def __init__(self, name):
         self.name = name
         self.securities = {}
+        self.securities_archive = {}
         self.tickers = []
+        self.tickers_archive = []
         self.transactions = pd.DataFrame(columns=['Date', 'Ticker', 'Quantity', 'Price', 'TradeValue'])
         self.dividends = pd.DataFrame(columns=['Date', 'Ticker', 'Amount'])
         self.payments = pd.DataFrame(columns=['Date', 'In', 'Out'])
@@ -23,6 +27,7 @@ class portfolio(object):
         self.return_value = 0.0
         self.return_rate = 0.0
         self.index = 0
+        self.benchmark_ticker = 'sp500'
 
     def __iter__(self):
         return self
@@ -59,7 +64,6 @@ class portfolio(object):
                                           'Cash': self.cash
                                           }, ignore_index=True)
 
-    
         self.payments = self.payments.append({'Date': date,
                                               'In': 0.0,
                                               'Out': 1.0*price*quantity
@@ -89,6 +93,11 @@ class portfolio(object):
         self.securities[_security.ticker] = _security
         self.tickers.append(ticker)
 
+    def add_security_archive(self, ticker):
+        _security = security.security(ticker)
+        self.securities_archive[_security.ticker] = _security
+        self.tickers_archive.append(ticker)
+
     def remove_security(self, ticker):
         del self.securities[ticker]
         self.tickers.remove(ticker)
@@ -99,6 +108,10 @@ class portfolio(object):
         if ticker not in self.tickers:
             self.add_security(ticker)
             print('adding', ticker)
+
+        # and to archive
+        if ticker not in self.tickers_archive:
+            self.add_security_archive(ticker)
 
         # get closing price of security for transaction date if price not provided
         if np.isnan(price):
@@ -211,7 +224,6 @@ class portfolio(object):
             )
         )
 
-
     def positions(self):
         # you have to have one security in the portfolio for meaningful output
         if len(self.securities) > 0:
@@ -259,18 +271,62 @@ class portfolio(object):
 
         # get date range from the transaction list
         self.min_date = self.transactions.Date.min()
-        self.max_date = todays_date()
+        self.max_date = datetime.datetime.now()
 
         # make a list of days between min and max date as index for timeseries df
         date_index = pd.date_range(self.min_date, self.max_date, freq='D')
-        ts = pd.Series(range(len(date_index)), index=date_index)
+        _ts = pd.Series(range(len(date_index)), index=date_index)
 
         # create timeseries df from date index and wallet entries
-        df_ts = ts.to_frame('Day').join(self.wallet.groupby(by='Date').last(), how='left').fillna(method='ffill')
+        _df_ts = _ts.to_frame('Day').join(self.wallet.groupby(by='Date').last(), how='left').fillna(method='ffill')
 
         # join in daily price data for each security
-        for security in self.securities:
-            df_ts = df_ts.join(self.securities[security].data['Close'], how='left', rsuffix='_{}'.format(self.securities[security].ticker)).fillna(method='ffill')
+        for security in self.tickers_archive:
+            _series = self.securities_archive[security].data['Close']
+            _series = _series.rename(str(_series.name)+"_"+security)
+            _df_ts = _df_ts.join(_series, how='left', rsuffix='').fillna(method='ffill')
 
-        self.timeseries = df_ts
+        for security in self.tickers_archive:
+            _df = self.transactions.loc[self.transactions.Ticker == self.securities_archive[security].ticker, 
+                ['Date', 'Quantity']].groupby(by=["Date"]).sum().cumsum()
+            _df.columns = _df.columns.map(lambda x: str(x)+"_"+security)
+            _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
 
+        for security in self.tickers_archive:
+            _df_ts[security] = _df_ts["Close_"+security]*_df_ts["Quantity_"+security]
+
+        
+        # calculate portfolio value
+        _df_ts["Total"] = 0.0
+        for security in self.tickers_archive:
+            _df_ts["Total"] = _df_ts["Total"] + _df_ts[security].fillna(0)
+
+        self.timeseries = _df_ts[self.tickers_archive+["Cash", "Total"]]
+
+    def get_benchmark(self, benchmark_ticker='^GSPC'):
+        
+        if benchmark_ticker == 'sp500' or benchmark_ticker == '^GSPC':
+            _ticker = '^GSPC'
+        else: 
+            _ticker = '^GSPC'  # S&P 500 as default
+
+        _benchmark = security.security(_ticker, start=self.min_date, end=self.max_date)
+
+        self.benchmark = _benchmark
+
+
+
+class total(object):
+    '''
+       Class that turns the portfolio total into a security-like object
+    '''
+
+    def __init__(self, name, data):
+        self.ticker = name
+        self.data = data
+
+    def set_name(self, name):
+        self.name = name
+
+    def update_data(self, data):
+        self.data = data

@@ -29,14 +29,14 @@ class security(object):
         if path.isfile(filepath):
             self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
         else:
-            self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start.replace('-', ''), enddate=end.replace('-', ''))
+            self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start, enddate=end)
 
     def refresh(self, start='1900-01-01', end='2100-01-01'):
         '''
         Tries to load from csv first, then pulls from Yahoo!
         '''
         try:
-            self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start.replace('-', ''), enddate=end.replace('-', ''))
+            self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start, enddate=end)
             filepath = '../data/{0}.csv'.format(self.ticker)
             print(filepath)
             self.data.index.name = 'Date'
@@ -73,3 +73,4 @@ class security(object):
 
     def dividend(self, currency, price, quantity):
         self.dividends = self.dividends + price*quantity
+

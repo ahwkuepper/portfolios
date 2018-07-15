@@ -72,7 +72,7 @@ def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
     return startdate, startvalue, enddate, endvalue, endvalue-startvalue, (endvalue-startvalue)/startvalue
 
 
-def rsq(sec1=None, sec2=None):
+def rsq(sec1=None, sec2=None, col1='Close', col2='Close'):
     '''
     Function that returns R^2 correlation measure between two securities
     :param sec1: First security (object of class security)
@@ -80,10 +80,12 @@ def rsq(sec1=None, sec2=None):
     :return: R^2
     '''
 
-    mindate = max(sec1.data.index.min(), sec2.data.index.min())
-    maxdate = min(sec1.data.index.max(), sec2.data.index.max())
-    slope, intercept, r_value, p_value, std_err = linregress(sec1.data.loc[(sec1.data.index >= mindate) & (sec1.data.index <= maxdate), 'Close'].values,
-                                                             sec2.data.loc[(sec2.data.index >= mindate) & (sec2.data.index <= maxdate), 'Close'].values)
+    if col1==col2:
+        col1 = str(col1)+"_2"
+
+    _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]]
+
+    slope, intercept, r_value, p_value, std_err = linregress(_df[col1].values,_df[col2].values)
 
     return r_value**2
 

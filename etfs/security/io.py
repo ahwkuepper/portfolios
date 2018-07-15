@@ -27,6 +27,16 @@ def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101'):
    Download data from Yahoo! Finance for a security.
 
    '''
+   # Try to convert input values into right format for yahoo
+   if type(startdate) != str:
+      startdate = '{0}{1:02}{2:02}'.format(startdate.year, startdate.month, startdate.day)
+
+   startdate = startdate.replace('-', '')
+
+   if type(enddate) != str:
+      enddate = '{0}{1:02}{2:02}'.format(enddate.year, enddate.month, enddate.day)
+   
+   enddate = enddate.replace('-', '')
 
    # Use load_yahoo_quote from yqd to request Yahoo data
    output = yqd.load_yahoo_quote(ticker, startdate, enddate)
