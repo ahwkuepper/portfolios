@@ -28,6 +28,7 @@ class portfolio(object):
         self.return_rate = 0.0
         self.index = 0
         self.benchmark_ticker = 'sp500'
+        self.benchmark = None
 
     def __iter__(self):
         return self
@@ -297,11 +298,19 @@ class portfolio(object):
 
         
         # calculate portfolio value
-        _df_ts["Total"] = 0.0
+        _df_ts["Total"] = _df_ts["Cash"]
         for security in self.tickers_archive:
             _df_ts["Total"] = _df_ts["Total"] + _df_ts[security].fillna(0)
 
+
+        # calculate portfolio value
+        _df = self.payments.groupby(by=["Date"]).sum().cumsum()
+        _df["Total_growth"] = _df["In"] + _df["Out"]
+        _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
+        _df_ts["Growth"] = _df_ts["Total"]/_df_ts["Total_growth"]
+
         self.timeseries = _df_ts[self.tickers_archive+["Cash", "Total"]]
+        self.timeseries_growth = _df_ts[["Total", "Total_growth", "Growth"]]
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
