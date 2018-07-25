@@ -48,6 +48,10 @@ class portfolio(object):
         self.name = name
 
     def deposit_cash(self, date, currency='USD', price=1.0, quantity=0):
+        '''
+           Adds an amount of quantity*price to the wallet
+           Price acts as exchange rate if currency is not USD
+        '''
         self.cash = self.cash + quantity*price
         self.wallet = self.wallet.append({'Date': date,
                                           'Cash': self.cash
@@ -57,9 +61,12 @@ class portfolio(object):
                                               'In': 1.0*price*quantity,
                                               'Out': 0.0
                                               }, ignore_index=True)
-        print("Cash balance: {0:.2f} {1}".format(self.cash, currency))
+        print("depositing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
 
     def withdraw_cash(self, date, currency='USD', price=1.0, quantity=0):
+        '''
+           Takes amount of quantity*price out of wallet
+        '''
         self.cash = self.cash - quantity*price
         self.wallet = self.wallet.append({'Date': date,
                                           'Cash': self.cash
@@ -72,22 +79,27 @@ class portfolio(object):
         if self.cash < 0.0:
             print("Warning, cash balance negative: {0:.2f} {1}".format(self.cash, currency))
         else:
-            print("Cash balance: {0:.2f} {1}".format(self.cash, currency))
+            print("withdrawing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
 
     def dividend(self, date, ticker='', currency='USD', price=1.0, quantity=0):
+        '''
+
+        '''
         self.cash = self.cash + quantity*price
         self.wallet = self.wallet.append({'Date': date,
                                           'Cash': self.cash
                                           }, ignore_index=True)
-
-
-        print("Cash balance: {0:.2f} {1}".format(self.cash,currency))
 
         # store transaction in df
         self.dividends = self.dividends.append({'Date': date,
                                                 'Ticker': ticker,
                                                 'Amount': 1.0*price*quantity
                                                 }, ignore_index=True)
+
+        if ticker == '' or ticker != ticker:
+            print("interest {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
+        else:
+            print("dividend {0} {1:.2f} {3} (new balance: {2:.2f} {3})".format(ticker, quantity*price, self.cash, currency))
 
     def add_security(self, ticker):
         _security = security.security(ticker)
@@ -108,7 +120,7 @@ class portfolio(object):
         # potentially add ticker to list
         if ticker not in self.tickers:
             self.add_security(ticker)
-            print('adding', ticker)
+            # print('adding', ticker)
 
         # and to archive
         if ticker not in self.tickers_archive:
@@ -135,6 +147,8 @@ class portfolio(object):
                                                       'TradeValue': 1.0*price*quantity
                                                       }, ignore_index=True)
 
+        print("buying {0:.2f} {1} (new balance: {2:.2f} {3})".format(quantity, ticker, self.cash, currency))
+
     def sell_security(self, date, ticker, currency='USD', price=None, quantity=0):
 
         # subtract price of security from wallet
@@ -158,10 +172,12 @@ class portfolio(object):
                                                       'TradeValue': -1.0*price*quantity
                                                       }, ignore_index=True)
 
+        print("selling {0:.2f} {1} (new balance: {2:.2f} {3})".format(quantity, ticker, self.cash, currency))
+
         # potentially remove ticker from list
         if self.transactions.groupby(by='Ticker')['Quantity'].sum()[ticker] <= 0.0:
             self.remove_security(ticker)
-            print('removing', ticker)
+            # print('removing', ticker)
 
     def overview(self):
 

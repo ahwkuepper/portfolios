@@ -114,7 +114,7 @@ def import_portfolio(path="", name="RobinHood"):
     # parse
     parse_portfolio(df, p)
 
-    return p
+    return df, p
 
 
 def import_vanguard_portfolio(path="", name="Vanguard"):
@@ -146,5 +146,5 @@ def import_vanguard_portfolio(path="", name="Vanguard"):
     # parse
     p = parse_portfolio_vanguard(df, p)
 
-    return p
+    return df, p
 
