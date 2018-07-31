@@ -20,7 +20,7 @@ class portfolio(object):
         self.transactions = pd.DataFrame(columns=['Date', 'Ticker', 'Quantity', 'Price', 'TradeValue'])
         self.dividends = pd.DataFrame(columns=['Date', 'Ticker', 'Amount'])
         self.payments = pd.DataFrame(columns=['Date', 'In', 'Out'])
-        self.wallet = pd.DataFrame(columns=['Date', 'Cash'])
+        self.wallet = pd.DataFrame(columns=['Date', 'Change'])
         self.total_portfolio_value = 0.0
         self.total_security_value = 0.0
         self.cash = 0.0
@@ -47,47 +47,53 @@ class portfolio(object):
     def set_name(self, name):
         self.name = name
 
+    def get_cash(self, date='2100-01-01'):
+        return self.wallet.loc[(self.wallet.Date <= date), "Change"].sum()
+
     def deposit_cash(self, date, currency='USD', price=1.0, quantity=0):
         '''
            Adds an amount of quantity*price to the wallet
            Price acts as exchange rate if currency is not USD
         '''
-        self.cash = self.cash + quantity*price
         self.wallet = self.wallet.append({'Date': date,
-                                          'Cash': self.cash
+                                          'Change': 1.0*price*quantity
                                           }, ignore_index=True)
 
         self.payments = self.payments.append({'Date': date,
                                               'In': 1.0*price*quantity,
                                               'Out': 0.0
                                               }, ignore_index=True)
+
+        self.cash = self.get_cash(date=todays_date())
+
         print("depositing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
 
     def withdraw_cash(self, date, currency='USD', price=1.0, quantity=0):
         '''
            Takes amount of quantity*price out of wallet
         '''
-        self.cash = self.cash - quantity*price
         self.wallet = self.wallet.append({'Date': date,
-                                          'Cash': self.cash
+                                          'Change': -1.0*price*quantity
                                           }, ignore_index=True)
 
         self.payments = self.payments.append({'Date': date,
                                               'In': 0.0,
                                               'Out': 1.0*price*quantity
                                               }, ignore_index=True)
+
+        self.cash = self.get_cash(date=todays_date())
+
         if self.cash < 0.0:
             print("Warning, cash balance negative: {0:.2f} {1}".format(self.cash, currency))
         else:
-            print("withdrawing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
+            print("withdrawing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))#
 
     def dividend(self, date, ticker='', currency='USD', price=1.0, quantity=0):
         '''
 
         '''
-        self.cash = self.cash + quantity*price
         self.wallet = self.wallet.append({'Date': date,
-                                          'Cash': self.cash
+                                          'Change': 1.0*price*quantity
                                           }, ignore_index=True)
 
         # store transaction in df
@@ -95,6 +101,8 @@ class portfolio(object):
                                                 'Ticker': ticker,
                                                 'Amount': 1.0*price*quantity
                                                 }, ignore_index=True)
+
+        self.cash = self.get_cash(date=todays_date())
 
         if ticker == '' or ticker != ticker:
             print("interest {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
@@ -130,12 +138,9 @@ class portfolio(object):
         if np.isnan(price):
             price = self.securities[ticker].get_price_at(date)
 
-        # subtract price of security from wallet
-        self.cash = self.cash - quantity*price
-
         # store point in time value in wallet
         self.wallet = self.wallet.append({'Date': date,
-                                          'Cash': self.cash
+                                          'Change': -1.0*price*quantity
                                           }, ignore_index=True)
 
 
@@ -147,16 +152,15 @@ class portfolio(object):
                                                       'TradeValue': 1.0*price*quantity
                                                       }, ignore_index=True)
 
+        self.cash = self.get_cash(date=todays_date())
+
         print("buying {0:.2f} {1} (new balance: {2:.2f} {3})".format(quantity, ticker, self.cash, currency))
 
     def sell_security(self, date, ticker, currency='USD', price=None, quantity=0):
 
-        # subtract price of security from wallet
-        self.cash = self.cash + quantity*price
-
         # store point in time value in wallet
         self.wallet = self.wallet.append({'Date': date,
-                                          'Cash': self.cash
+                                          'Change': 1.0*price*quantity
                                           }, ignore_index=True)
 
 
@@ -171,6 +175,8 @@ class portfolio(object):
                                                       'Price': 1.0*price,
                                                       'TradeValue': -1.0*price*quantity
                                                       }, ignore_index=True)
+
+        self.cash = self.get_cash(date=todays_date())
 
         print("selling {0:.2f} {1} (new balance: {2:.2f} {3})".format(quantity, ticker, self.cash, currency))
 
@@ -287,7 +293,7 @@ class portfolio(object):
     def get_timeseries(self):
 
         # get date range from the transaction list
-        self.min_date = self.transactions.Date.min()
+        self.min_date = min(self.transactions.Date.min(), self.payments.Date.min())
         self.max_date = datetime.datetime.now()
 
         # make a list of days between min and max date as index for timeseries df
@@ -295,7 +301,7 @@ class portfolio(object):
         _ts = pd.Series(range(len(date_index)), index=date_index)
 
         # create timeseries df from date index and wallet entries
-        _df_ts = _ts.to_frame('Day').join(self.wallet.groupby(by='Date').last(), how='left').fillna(method='ffill')
+        _df_ts = _ts.to_frame('Day').join(self.wallet[["Date", "Change"]].groupby(by='Date').sum(), how='left').fillna(method='ffill')
 
         # join in daily price data for each security
         for security in self.tickers_archive:
@@ -314,7 +320,9 @@ class portfolio(object):
 
         
         # calculate portfolio value
-        _df_ts["Total"] = _df_ts["Cash"]
+        _df_ts = _df_ts.join(self.wallet[["Date", "Change"]].groupby(by='Date').sum().cumsum(), how='left', rsuffix='_tot').fillna(method='ffill')
+        _df_ts["Cash"]  = _df_ts["Change_tot"]        
+        _df_ts["Total"] = _df_ts["Change_tot"]
         for security in self.tickers_archive:
             _df_ts["Total"] = _df_ts["Total"] + _df_ts[security].fillna(0)
 
@@ -325,7 +333,7 @@ class portfolio(object):
         _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
         _df_ts["Growth"] = _df_ts["Total"]/_df_ts["Total_growth"]
 
-        self.timeseries = _df_ts[self.tickers_archive+["Cash", "Total"]]
+        self.timeseries = _df_ts[self.tickers_archive+["Cash" ,"Total"]]
         self.timeseries_growth = _df_ts[["Total", "Total_growth", "Growth"]]
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
