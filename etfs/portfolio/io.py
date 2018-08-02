@@ -7,68 +7,87 @@ from etfs.portfolio import portfolio
 
 def parse_portfolio(df=None, p=None):
 
-    # sort chronologically
-    df = df.sort_values(by='Date')
+    # put input dataframe(s) in list
+    dfs = []
+    if type(df) == pd.core.frame.DataFrame:
+        dfs.append(df)
+    else:
+        dfs.extend(df)
 
-    for index, row in df.iterrows():
-        #print(row['Date'], row['Transaction'], row['Ticker'], row['Currency'], row['Price'], row['Quantity'])
-        if row['Transaction'] == 'buy':
-            p.buy_security(date=row['Date'], 
-                           ticker=row['Ticker'], 
-                           currency=row['Currency'], 
-                           price=row['Price'], 
-                           quantity=row['Quantity'])
+    # loop through list of dataframes
+    for df in dfs:
+
+      # sort chronologically
+      df = df.sort_values(by='Date')
+
+      for index, row in df.iterrows():
+          #print(row['Date'], row['Transaction'], row['Ticker'], row['Currency'], row['Price'], row['Quantity'])
+          if row['Transaction'] == 'buy':
+              p.buy_security(date=row['Date'], 
+                             ticker=row['Ticker'], 
+                             currency=row['Currency'], 
+                             price=row['Price'], 
+                             quantity=row['Quantity'])
 
 
-        elif row['Transaction'] == 'sell':
-            p.sell_security(date=row['Date'], 
-                            ticker=row['Ticker'], 
-                            currency=row['Currency'], 
-                            price=row['Price'],  
-                            quantity=row['Quantity']) 
+          elif row['Transaction'] == 'sell':
+              p.sell_security(date=row['Date'], 
+                              ticker=row['Ticker'], 
+                              currency=row['Currency'], 
+                              price=row['Price'],  
+                              quantity=row['Quantity']) 
 
-            # FINRA fee of $.000119 per share up to $5.95
-            _FINRAfee = min(max(ceil(0.0119*row['Quantity']), 1.0)/100.0, 5.95)
-            # SEC fee of $.000013 per trade of up to $1M
-            _SECfee = max(ceil(0.0013*row['Quantity']*row['Price']), 1.0)/100.0
-            
-            p.wallet = p.wallet.append({'Date': row['Date'],
-                                        'Change': -_FINRAfee -_SECfee
-                                       }, ignore_index=True)
+              # FINRA fee of $.000119 per share up to $5.95
+              _FINRAfee = min(max(ceil(0.0119*row['Quantity']), 1.0)/100.0, 5.95)
+              # SEC fee of $.000013 per trade of up to $1M
+              _SECfee = max(ceil(0.0013*row['Quantity']*row['Price']), 1.0)/100.0
+              
+              p.wallet = p.wallet.append({'Date': row['Date'],
+                                          'Change': -_FINRAfee -_SECfee
+                                         }, ignore_index=True)
 
-        elif row['Transaction'] == 'deposit':
-            p.deposit_cash(date=row['Date'], 
-                           currency=row['Currency'], 
-                           price=row['Price'], 
-                           quantity=row['Quantity'])
+          elif row['Transaction'] == 'deposit':
+              p.deposit_cash(date=row['Date'], 
+                             currency=row['Currency'], 
+                             price=row['Price'], 
+                             quantity=row['Quantity'])
 
-        elif row['Transaction'] == 'withdraw':
-            p.withdraw_cash(date=row['Date'], 
-                            currency=row['Currency'], 
-                            price=row['Price'], 
-                            quantity=row['Quantity'])
-        elif row['Transaction'] == 'Dividend':
-            p.dividend(date=row['Date'], 
-                       ticker=row['Ticker'], 
-                       currency=row['Currency'], 
-                       price=1.0, 
-                       quantity=row['Dollars'])
+          elif row['Transaction'] == 'withdraw':
+              p.withdraw_cash(date=row['Date'], 
+                              currency=row['Currency'], 
+                              price=row['Price'], 
+                              quantity=row['Quantity'])
+          elif row['Transaction'] == 'Dividend':
+              p.dividend(date=row['Date'], 
+                         ticker=row['Ticker'], 
+                         currency=row['Currency'], 
+                         price=1.0, 
+                         quantity=row['Dollars'])
 
-        elif row['Transaction'] == 'dividend':
-            p.dividend(date=row['Date'], 
-                       ticker=row['Ticker'], 
-                       currency=row['Currency'], 
-                       price=row['Price'], 
-                       quantity=row['Quantity'])
-        else:
-            pass
+          elif row['Transaction'] == 'dividend':
+              p.dividend(date=row['Date'], 
+                         ticker=row['Ticker'], 
+                         currency=row['Currency'], 
+                         price=row['Price'], 
+                         quantity=row['Quantity'])
+          else:
+              pass
  
     return p
 
 
-def parse_portfolio_vanguard(dfs=None, p=None):
+def parse_portfolio_vanguard(df=None, p=None):
 
+    # put input dataframe(s) in list
+    dfs = []
+    if type(df) == pd.core.frame.DataFrame:
+        dfs.append(df)
+    else:
+        dfs.extend(df)
+
+    # loop through list of dataframes
     for df in dfs:
+
       # sort chronologically
       df = df.sort_values(by='Date')
 
@@ -135,7 +154,7 @@ def import_portfolio(path="", name="RobinHood"):
     return df, p
 
 
-def import_vanguard_portfolio(path="", name="Vanguard"):
+def import_portfolio_vanguard(path="", name="Vanguard"):
 
     # read in csv to find beginning of transaction list
     input_file = csv.reader(open(path, "r"), delimiter=",")
