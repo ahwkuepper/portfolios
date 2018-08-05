@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import csv
 from math import ceil
-from etfs.portfolio import portfolio
+from etfs.portfolio.portfolio import Portfolio
 
 
 def parse_portfolio(df=None, p=None):
@@ -146,7 +146,7 @@ def import_portfolio(path="", name="RobinHood"):
     df = pd.read_csv(path, parse_dates=[0])
 
     # create a new portfolio object
-    p = portfolio.portfolio(name=name)
+    p = Portfolio(name=name)
 
     # parse
     parse_portfolio(df, p)
@@ -178,7 +178,7 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
     df["Currency"] = 'USD'
 
     # create a new portfolio object
-    p = portfolio.portfolio(name=name)
+    p = Portfolio(name=name)
 
     # parse
     p = parse_portfolio_vanguard(df, p)

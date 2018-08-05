@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 import datetime
-from etfs.security import security
+from etfs.security.security import Security
 from etfs.utils.helpers import todays_date
 from etfs.stats.basics import rsq
 
 
-class portfolio(object):
+class Portfolio(object):
     '''
        Class that holds several securities
     '''
@@ -110,12 +110,12 @@ class portfolio(object):
             print("dividend {0} {1:.2f} {3} (new balance: {2:.2f} {3})".format(ticker, quantity*price, self.cash, currency))
 
     def add_security(self, ticker):
-        _security = security.security(ticker)
+        _security = Security(ticker)
         self.securities[_security.ticker] = _security
         self.tickers.append(ticker)
 
     def add_security_archive(self, ticker):
-        _security = security.security(ticker)
+        _security = Security(ticker)
         self.securities_archive[_security.ticker] = _security
         self.tickers_archive.append(ticker)
 
@@ -270,7 +270,7 @@ class portfolio(object):
                     self.positions_df.loc[self.positions_df.index == ticker, 
                                           'LastPrice'] = self.securities[ticker].get_last_price()
                 else:
-                    _security = security.security(ticker) 
+                    _security = Security(ticker) 
                     self.positions_df.loc[self.positions_df.index == ticker, 
                                           'LastPrice'] = _security.get_last_price()
         
@@ -343,13 +343,13 @@ class portfolio(object):
         else: 
             _ticker = '^GSPC'  # S&P 500 as default
 
-        _benchmark = security.security(_ticker, start=self.min_date, end=self.max_date)
+        _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
 
         self.benchmark = _benchmark
 
 
 
-class total(object):
+class TotalPortfolioValue(object):
     '''
        Class that turns the portfolio total into a security-like object
     '''

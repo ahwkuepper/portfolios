@@ -2,7 +2,7 @@ from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote
 from os import path
 
 
-class security(object):
+class Security(object):
     '''
        Class that holds a single security and some useful functions
     '''
