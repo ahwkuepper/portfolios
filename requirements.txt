@@ -37,7 +37,6 @@ conda-manager==0.4.0
 conda-verify==3.1.0
 configobj==5.0.6
 constantly==15.1.0
-cryptography==2.2.2
 cycler==0.10.0
 Cython==0.28.4
 cytoolz==0.9.0.1
@@ -51,7 +50,7 @@ docutils==0.14
 dynd==0.7.3.dev1
 entrypoints==0.2.3
 et-xmlfile==1.0.1
--e git+https://github.com/ahwkuepper/etfs.git@1478c7df609a6c31a0003024d69f01e019924b3b#egg=etfs
+-e git+https://github.com/ahwkuepper/etfs.git@f155986bc2d33e492d1e39c927b900a6edf5bca2#egg=etfs
 fastcache==1.0.2
 filelock==3.0.4
 Flask==1.0.2
