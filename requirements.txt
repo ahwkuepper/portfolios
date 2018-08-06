@@ -51,7 +51,7 @@ docutils==0.14
 dynd==0.7.3.dev1
 entrypoints==0.2.3
 et-xmlfile==1.0.1
--e git+https://github.com/ahwkuepper/etfs.git@089b71d4f60f4c62a49783fbfc4341694cedf497#egg=etfs
+-e git+https://github.com/ahwkuepper/etfs.git@1478c7df609a6c31a0003024d69f01e019924b3b#egg=etfs
 fastcache==1.0.2
 filelock==3.0.4
 Flask==1.0.2
@@ -144,7 +144,6 @@ pyasn1==0.4.4
 pyasn1-modules==0.2.2
 pycosat==0.6.3
 pycparser==2.18
-pycrypto==2.6.1
 pycurl==7.43.0.2
 pyflakes==2.0.0
 Pygments==2.2.0
@@ -170,7 +169,6 @@ query-string==0.0.5
 redis==2.10.6
 requests==2.19.1
 requests-oauthlib==0.6.1
-rope==0.10.7
 ruamel-yaml==0.15.46
 schedule==0.4.2
 scikit-image==0.14.0
@@ -191,7 +189,6 @@ sortedcontainers==2.0.4
 Sphinx==1.7.6
 sphinx-rtd-theme==0.4.1
 sphinxcontrib-websupport==1.1.0
-spyder==2.3.8
 SQLAlchemy==1.2.10
 SQLAlchemy-Utils==0.32.6
 statsmodels==0.9.0
