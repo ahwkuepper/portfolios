@@ -50,7 +50,7 @@ docutils==0.14
 dynd==0.7.3.dev1
 entrypoints==0.2.3
 et-xmlfile==1.0.1
--e git+https://github.com/ahwkuepper/etfs.git@f155986bc2d33e492d1e39c927b900a6edf5bca2#egg=etfs
+-e git+https://github.com/ahwkuepper/etfs.git@96da5b1ecb2cb21a723a64607d68c50be0fe26b1#egg=etfs
 fastcache==1.0.2
 filelock==3.0.4
 Flask==1.0.2

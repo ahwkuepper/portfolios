@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Created on Thu May 18 22:58:12 2017
 @author: c0redumb
@@ -108,3 +109,5 @@ def load_yahoo_quote(ticker, begindate, enddate, info = 'quote'):
    alines = f.read().decode('utf-8')
    #print(alines)
    return alines.split('\n')
+
+

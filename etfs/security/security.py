@@ -1,4 +1,6 @@
-from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote
+# -*- coding: utf-8 -*-
+
+from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote, get_company_name
 from os import path
 
 
@@ -9,6 +11,8 @@ class Security(object):
 
     def __init__(self, name, start='2000-01-01', end='2100-01-01'):
         self.ticker = name
+        self.name = name
+        self.set_name(name)
         self.load(start=start, end=end)
         self.get_last_price()
         self.get_max_price()
@@ -19,7 +23,7 @@ class Security(object):
         self.dividends = 0.0
 
     def set_name(self, name):
-        self.name = name
+        self.name = get_company_name(ticker=name)
 
     def load(self, start='2000-01-01', end='2100-01-01'):
         '''

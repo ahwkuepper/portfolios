@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import pandas as pd
 import datetime
@@ -210,9 +212,13 @@ class Portfolio(object):
             self.overview_df['AvgPrice'] = self.overview_df['TradeValue'] / (1.0*self.overview_df['Quantity'])
             self.overview_df.fillna(0.0, inplace=True)
             self.overview_df['Return'] = self.overview_df['CurrentValue'] - self.overview_df['TradeValue'] + self.overview_df['Dividends']
+           
+            # join in names of securities
+            for ticker in self.tickers:
+                self.overview_df.loc[self.overview_df.index == ticker, 
+                                     'Description'] = self.securities[ticker].name           
 
-            #self.overview_dividende_df = self.overview_dividende_df.loc[self.overview_dividende_df.Quantity > 0]
-            
+
         # make dummy df when no (more) securities in portfolio
         else:
             _d = {'Quantity': [0],
@@ -236,7 +242,7 @@ class Portfolio(object):
             self.return_rate = 0.0
 
 
-        print(self.overview_df[['Quantity', 'AvgPrice', 'LastPrice', 'TradeValue', 'CurrentValue', 'Dividends', 'Return']])
+        print(self.overview_df[['Quantity', 'AvgPrice', 'LastPrice', 'TradeValue', 'CurrentValue', 'Dividends', 'Return', 'Description']])
         print()
         print("Total portfolio value:\t{0:8.2f} USD\nTotal security value:\t{1:8.2f} USD\nCash in wallet:\t\t{2:8.2f} USD\nTotal return:\t\t{3:8.2f} USD\t({4:.2f}%)".format(
             self.total_portfolio_value,
@@ -265,14 +271,19 @@ class Portfolio(object):
                 if row['Quantity'] < 0.0:
                     print('Negative volume encountered: {0:5}\t{1}'.format(index, row['Quantity']))
 
+            # join in last price and names of securities
             for ticker in set(self.positions_df.index):
                 if ticker in self.tickers:
                     self.positions_df.loc[self.positions_df.index == ticker, 
                                           'LastPrice'] = self.securities[ticker].get_last_price()
+                    self.positions_df.loc[self.positions_df.index == ticker, 
+                                          'Description'] = self.securities[ticker].name  
                 else:
                     _security = Security(ticker) 
                     self.positions_df.loc[self.positions_df.index == ticker, 
                                           'LastPrice'] = _security.get_last_price()
+                    self.positions_df.loc[self.positions_df.index == ticker, 
+                                          'Description'] = _security.name  
         
             self.positions_df['CurrentValue'] = self.positions_df['LastPrice'] * self.positions_df['Quantity']
 
@@ -285,7 +296,8 @@ class Portfolio(object):
             self.positions_df['PercentGrowth'] = 100.0*self.positions_df['Return']/self.positions_df['Invested']
             self.positions_df.PercentGrowth.replace([np.inf,-np.inf], np.nan, inplace=True)
 
-            print(self.positions_df[['Quantity', 'Bought', 'Sold', 'CurrentValue', 'Invested', 'Devested', 'Dividends', 'Return', 'PercentGrowth']].sort_values(by=['CurrentValue', 'Invested'], ascending=False))
+
+            print(self.positions_df[['Quantity', 'Bought', 'Sold', 'CurrentValue', 'Invested', 'Devested', 'Dividends', 'Return', 'PercentGrowth', 'Description']].sort_values(by=['CurrentValue', 'Invested'], ascending=False))
 
         else:
              print("No positions in portfolio.")

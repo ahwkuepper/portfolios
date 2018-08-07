@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # To do:
 # Use API or write script to access SEC's EDGAR database
 # https://www.sec.gov/oiea/Article/edgarguide.html
@@ -9,6 +11,9 @@
 import pandas as pd
 import numpy as np
 from etfs.security import yqd
+import urllib.request, urllib.parse, urllib.error
+import json
+import html
 
 
 def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
@@ -22,9 +27,10 @@ def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
    return df.loc[(df.index >= startdate) & (df.index <= enddate)]
 
 
-def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101'):
+def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101', info = 'quote'):
    '''
    Download data from Yahoo! Finance for a security.
+   info can be quote, dividend, or split
 
    '''
    # Try to convert input values into right format for yahoo
@@ -39,7 +45,7 @@ def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101'):
    enddate = enddate.replace('-', '')
 
    # Use load_yahoo_quote from yqd to request Yahoo data
-   output = yqd.load_yahoo_quote(ticker, startdate, enddate)
+   output = yqd.load_yahoo_quote(ticker, startdate, enddate, info)
 
    # Break data into column headers, column data, and index 
    header = [sub.split(",") for sub in output[:1]]
@@ -64,3 +70,32 @@ def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101'):
 
    return df
 
+
+def get_company_name(ticker=''):
+    '''
+       Takes a ticker symbol and queries Yahoo! Finance for metadata
+    '''
+    if ticker:
+        
+        # Headers to fake a user agent
+        _headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11'
+        }
+    
+        # use request to retrieve data
+        req = urllib.request.Request('https://query2.finance.yahoo.com/v7/finance/options/{}'.format(ticker), headers=_headers)
+        f = urllib.request.urlopen(req)
+        alines = f.read().decode('utf-8')
+    
+        # read json
+        j = json.loads(alines)
+        try:
+            # return shortName variable
+            return html.unescape(j['optionChain']['result'][0]['quote']['longName'])
+
+        except:
+            # default to ticker symbol
+            return ticker
+    else:
+        print('Ticker symbol not specified')
+        return ''
