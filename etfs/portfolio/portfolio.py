@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 from etfs.security.security import Security
 from etfs.utils.helpers import todays_date
-from etfs.stats.basics import rsq
+from etfs.stats.basics import rsq, get_returns
 
 
 class Portfolio(object):
@@ -348,6 +348,9 @@ class Portfolio(object):
         self.timeseries = _df_ts[self.tickers_archive+["Cash" ,"Total"]]
         self.timeseries_growth = _df_ts[["Total", "Total_growth", "Growth"]]
 
+    def get_returns(self, column='Total'):
+        self.timeseries_growth = get_returns(df=self.timeseries_growth, column=column)
+
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
         if benchmark_ticker == 'sp500' or benchmark_ticker == '^GSPC':
@@ -355,7 +358,11 @@ class Portfolio(object):
         else: 
             _ticker = '^GSPC'  # S&P 500 as default
 
+        # create security class object for benchmark ticker
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
+        
+        # calculate returns for the benchmark
+        _benchmark.data = get_returns(df=_benchmark.data, column='Close', uselogs=True)
 
         self.benchmark = _benchmark
 
@@ -375,3 +382,26 @@ class TotalPortfolioValue(object):
 
     def update_data(self, data):
         self.data = data
+
+    def get_returns(self, column='Total'):
+        self.data = get_returns(df=self.data, column=column)
+
+    def get_benchmark(self, benchmark_ticker='^GSPC'):
+        
+        self.min_date = self.data.index.min()
+        self.max_date = min(self.data.index.max(), datetime.datetime.now())
+        
+        if benchmark_ticker == 'sp500' or benchmark_ticker == '^GSPC':
+            _ticker = '^GSPC'
+        else: 
+            _ticker = '^GSPC'  # S&P 500 as default
+
+        # create security class object for benchmark ticker
+        _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
+        
+        # calculate returns for the benchmark
+        _benchmark.data = get_returns(df=_benchmark.data, column='Close', uselogs=True)
+
+        self.benchmark = _benchmark
+
+

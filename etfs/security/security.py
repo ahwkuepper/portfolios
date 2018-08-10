@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote, get_company_name
 from os import path
+import datetime
+from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote, get_company_name
+from etfs.stats.basics import get_returns
 
 
 class Security(object):
@@ -21,6 +23,8 @@ class Security(object):
         self.get_mean_price()
         self.get_std_price()
         self.dividends = 0.0
+        self.benchmark_ticker = 'sp500'
+        self.benchmark = None
 
     def set_name(self, name):
         self.name = get_company_name(ticker=name)
@@ -78,3 +82,23 @@ class Security(object):
     def dividend(self, currency, price, quantity):
         self.dividends = self.dividends + price*quantity
 
+    def get_returns(self, column='Close'):
+        self.data = get_returns(df=self.data, column=column)
+
+    def get_benchmark(self, benchmark_ticker='^GSPC'):
+        
+        self.min_date = self.data.index.min()
+        self.max_date = min(self.data.index.max(), datetime.datetime.now())
+
+        if benchmark_ticker == 'sp500' or benchmark_ticker == '^GSPC':
+            _ticker = '^GSPC'
+        else: 
+            _ticker = '^GSPC'  # S&P 500 as default
+
+        # create security class object for benchmark ticker
+        _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
+        
+        # calculate returns for the benchmark
+        _benchmark.data = get_returns(df=_benchmark.data, column='Close', uselogs=True)
+
+        self.benchmark = _benchmark

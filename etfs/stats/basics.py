@@ -32,7 +32,7 @@ def shift_column(df=None, column=None, shift=1):
     column_shift = column + '_sh' + str(shift)
     df[column_shift] = df[column].shift(shift)
 
-    return df
+    return df, column_shift
 
 
 def return_column(df=None, column=None, window=1, shift=1):
@@ -48,8 +48,7 @@ def return_column(df=None, column=None, window=1, shift=1):
     else:
         column_rr = column
 
-    column_shift = column_rr + '_sh' + str(shift)
-    df = shift_column(df=df, column=column_rr, shift=shift)
+    df, column_shift = shift_column(df=df, column=column_rr, shift=shift)
 
     column_return = column_shift + '_ret'
     df[column_return] = (df[column_rr]-df[column_shift])/df[column_rr]
@@ -74,6 +73,27 @@ def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
     return startdate, startvalue, enddate, endvalue, endvalue-startvalue, (endvalue-startvalue)/startvalue
 
 
+def get_returns(df=None, column=None, uselogs=True):
+    '''
+    Calculate return from timeseries of prices
+    '''
+
+    def get_reldiff(a,b):
+        return (a-b)/b
+
+    def get_logratio(a,b):
+        return np.log(a/b)
+
+    _df, column_shift = shift_column(df, column=column, shift=1)
+    
+    if uselogs==False:
+        _df['Return'] = _df.apply(lambda row: get_reldiff(row[column], row[column_shift]), axis=1)
+    else:
+        _df['Return'] = _df.apply(lambda row: get_logratio(row[column], row[column_shift]), axis=1)
+
+    return _df.drop(column_shift, axis=1)
+
+
 def rsq(sec1=None, sec2=None, col1='Close', col2='Close'):
     '''
     Function that returns R^2 correlation measure between two securities
@@ -85,11 +105,29 @@ def rsq(sec1=None, sec2=None, col1='Close', col2='Close'):
     if col1==col2:
         col1 = str(col1)+"_2"
 
-    _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]]
+    _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]].dropna(how='any')
 
     slope, intercept, r_value, p_value, std_err = linregress(_df[col1].values,_df[col2].values)
 
     return r_value**2
+
+
+def beta(sec1=None, sec2=None, col1='Return', col2='Return'):
+    '''
+    Function that returns the beta of a security (sec1) with respect to
+    its benchmark (sec2)
+    '''
+
+    if col1==col2:
+        col2 = str(col2)+"_2"
+
+    _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]].dropna(how='any')
+    _cov = np.cov(_df[col1], _df[col2])[0,1]
+    _var = np.var(_df[col2])
+
+    return _cov/_var
+
+
 
 
 
