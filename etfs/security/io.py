@@ -17,10 +17,10 @@ import html
 
 
 def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
-   '''
+   """
    Read locally stored csv with data from Yahoo! Finance for a security.
 
-   '''
+   """
    
    df = pd.read_csv(path, index_col='Date', parse_dates=True)
 
@@ -28,11 +28,11 @@ def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
 
 
 def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101', info = 'quote'):
-   '''
+   """
    Download data from Yahoo! Finance for a security.
    info can be quote, dividend, or split
 
-   '''
+   """
    # Try to convert input values into right format for yahoo
    if type(startdate) != str:
       startdate = '{0}{1:02}{2:02}'.format(startdate.year, startdate.month, startdate.day)
@@ -72,9 +72,9 @@ def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101', 
 
 
 def get_company_name(ticker=''):
-    '''
+    """
        Takes a ticker symbol and queries Yahoo! Finance for metadata
-    '''
+    """
     if ticker:
         
         # Headers to fake a user agent

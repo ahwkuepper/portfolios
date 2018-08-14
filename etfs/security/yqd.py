@@ -16,14 +16,14 @@ import urllib.request, urllib.parse, urllib.error
 
 import time
 
-'''
+"""
 Starting on May 2017, Yahoo financial has terminated its service on
 the well used EOD data download without warning. This is confirmed
 by Yahoo employee in forum posts.
 Yahoo financial EOD data, however, still works on Yahoo financial pages.
 These download links uses a "crumb" for authentication with a cookie "B".
 This code is provided to obtain such matching cookie and crumb.
-'''
+"""
 
 # Build the cookie handler
 cookier = urllib.request.HTTPCookieProcessor()
@@ -41,9 +41,9 @@ _headers={
 
 
 def _get_cookie_crumb():
-   '''
+   """
    This function perform a query and extract the matching cookie and crumb.
-   '''
+   """
 
    # Perform a Yahoo financial lookup on SP500
    req = urllib.request.Request('https://finance.yahoo.com/quote/^GSPC', headers=_headers)
@@ -75,9 +75,9 @@ def _get_cookie_crumb():
 
 
 def load_yahoo_quote(ticker, begindate, enddate, info = 'quote'):
-   '''
+   """
    This function load the corresponding history/divident/split from Yahoo.
-   '''
+   """
    # Check to make sure that the cookie and crumb has been loaded
    global _cookie, _crumb
    if _cookie == None or _crumb == None:

@@ -2,15 +2,15 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from etfs.stats.basics import runrate_column
+from etfs.stats.basics import runrate_column, ewm_column
 from bokeh.plotting import figure, show, output_file
 from bokeh.io import output_notebook
 
 
 def plot_trend(security=None, column='Close', ndays=100, windows=[50,200]):
-    '''
+    """
        Plots data and run rate with given window sizes
-    '''
+    """
     
     plt.plot(security.data.index[-ndays:], security.data[column][-ndays:], label=column)
     
@@ -25,6 +25,22 @@ def plot_trend(security=None, column='Close', ndays=100, windows=[50,200]):
     plt.legend()
 
 
+def plot_ewm(security=None, column='Close', ndays=100, alphas=[.7,.3]):
+    """
+       Plots data and exponentially weighted moving average with given alphas
+    """
+    
+    plt.plot(security.data.index[-ndays:], security.data[column][-ndays:], label=column)
+    
+    cols = []
+    for alpha in alphas:
+        col = column+"_ewm{0}".format(alpha)
+        cols.append(col)
+        security.data = ewm_column(security.data, column=column, alpha=alpha)
+        plt.plot(security.data.index[-ndays:], security.data[col][-ndays:], label='alpha = {0}'.format(alpha))   
+    
+    plt.legend()
+
 
 def plot_candlestick(security=None, 
                      open_col=None, 
@@ -33,10 +49,10 @@ def plot_candlestick(security=None,
                      low_col=None, 
                      ndays=100,
                      heikin=False):
-    '''
+    """
        Draws a candlestick figure for a security
        Set heikin=True for Heikin-Ashi type of candlestick chart
-    '''
+    """
 
     if heikin == True:
         def heikin_mean(a,b,c,d):

@@ -9,9 +9,9 @@ from etfs.stats.basics import rsq, get_returns
 
 
 class Portfolio(object):
-    '''
+    """
        Class that holds several securities
-    '''
+    """
 
     def __init__(self, name):
         self.name = name
@@ -53,10 +53,10 @@ class Portfolio(object):
         return self.wallet.loc[(self.wallet.Date <= date), "Change"].sum()
 
     def deposit_cash(self, date, currency='USD', price=1.0, quantity=0):
-        '''
+        """
            Adds an amount of quantity*price to the wallet
            Price acts as exchange rate if currency is not USD
-        '''
+        """
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': 1.0*price*quantity
                                           }, ignore_index=True)
@@ -71,9 +71,9 @@ class Portfolio(object):
         print("depositing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))
 
     def withdraw_cash(self, date, currency='USD', price=1.0, quantity=0):
-        '''
+        """
            Takes amount of quantity*price out of wallet
-        '''
+        """
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': -1.0*price*quantity
                                           }, ignore_index=True)
@@ -91,9 +91,9 @@ class Portfolio(object):
             print("withdrawing {0:.2f} {2} (new balance: {1:.2f} {2})".format(quantity*price, self.cash, currency))#
 
     def dividend(self, date, ticker='', currency='USD', price=1.0, quantity=0):
-        '''
+        """
 
-        '''
+        """
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': 1.0*price*quantity
                                           }, ignore_index=True)
@@ -369,9 +369,9 @@ class Portfolio(object):
 
 
 class TotalPortfolioValue(object):
-    '''
+    """
        Class that turns the portfolio total into a security-like object
-    '''
+    """
 
     def __init__(self, name, data):
         self.ticker = name

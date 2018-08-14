@@ -7,9 +7,9 @@ from etfs.stats.basics import get_returns
 
 
 class Security(object):
-    '''
+    """
        Class that holds a single security and some useful functions
-    '''
+    """
 
     def __init__(self, name, start='2000-01-01', end='2100-01-01'):
         self.ticker = name
@@ -30,9 +30,9 @@ class Security(object):
         self.name = get_company_name(ticker=name)
 
     def load(self, start='2000-01-01', end='2100-01-01'):
-        '''
+        """
         Tries to load from csv first, then pulls from Yahoo!
-        '''
+        """
         filepath = '../data/{0}.csv'.format(self.ticker)
         if path.isfile(filepath):
             self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
@@ -40,9 +40,9 @@ class Security(object):
             self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start, enddate=end)
 
     def refresh(self, start='1900-01-01', end='2100-01-01'):
-        '''
+        """
         Tries to load from csv first, then pulls from Yahoo!
-        '''
+        """
         try:
             self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start, enddate=end)
             filepath = '../data/{0}.csv'.format(self.ticker)
@@ -92,6 +92,8 @@ class Security(object):
 
         if benchmark_ticker == 'sp500' or benchmark_ticker == '^GSPC':
             _ticker = '^GSPC'
+        elif benchmark_ticker:
+            _ticker = benchmark_ticker
         else: 
             _ticker = '^GSPC'  # S&P 500 as default
 
