@@ -19,8 +19,9 @@ Basic methods on historical price data:
   - run rate (e.g., 50-day / 200-day moving average)
   - exponentially weighted moving average
   - resampling (e.g., day, week, month)
+  - standard deviation
   - variance
-  - :math:`R^2`
+  - `R^2`
   - beta
   - alpha
 
