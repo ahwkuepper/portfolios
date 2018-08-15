@@ -1,26 +1,28 @@
 # etfs: security analysis toolkit
 
 
+
 ## Purpose
 
-*etfs* is a Python package making it easy to gather data on securities, compute statistics, and find trends. It offers a wide range of tools to analyze securities, such as stocks and bonds, or compositions of securities, such as portfolios or ETFs.
+*etfs* is a Python package that makes it easy to gather data on securities, compute statistics, and find trends. It offers a wide range of tools to analyze securities, such as stocks and bonds, or compositions of securities, such as portfolios or ETFs.
+
 
 
 ## Main Features
 
 
 Input features:
-  - Load in Vanguard portfolios (from a CSV file saved from your Vanguard account) or other portfolios from custom CSV files with transactions (e.g. from RobinHood).
+  - Load in Vanguard portfolios (from a CSV file downloaded from a Vanguard account) or other custom portfolios from a CSV file with a list of transactions (e.g. from RobinHood).
   - Retrieves historical price and volume data from Yahoo! Finance.
 
 Basic methods on historical price data:
   - run rate (e.g., 50-day / 200-day moving average)
   - exponentially weighted moving average
+  - resampling (e.g., day, week, month)
   - variance
-  - $r^2$ between securities or w.r.t. benchmark
+  - :math:`R^2`
   - beta
   - alpha
-  - resampling (e.g., day, week, month)
 
 Output:
   - detailed portfolio description (positions, current value, returns, investments, devestments)
@@ -36,17 +38,18 @@ Output:
 To install *etfs* clone or download the repository and execute
 
 ```sh
-pip install setup.py
+pip install .
 ```
 
 in the `etfs` directory, or execute
 
 
 ```sh
-pip install -e setup.py
+pip install -e .
 ```
 
 for installing in development mode.
+
 
 
 ## License
@@ -55,7 +58,8 @@ for installing in development mode.
 [BSD 3](LICENSE)
 
 
+
 ## Documentation
 
 
-See Jupyter notebook for examples. More to follow.
+See Jupyter notebooks for examples. More to follow.
