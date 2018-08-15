@@ -72,12 +72,10 @@ def shift_column(df=None, column=None, shift=1):
     return df, column_shift
 
 
-def return_column(df=None, column=None, window=1, shift=1):
+def standard_deviation_column(df=None, column=None, window=1, shift=1):
     """
     Calculate the standard deviation of data - run rate
     """
-    from pandas.tseries import offsets
-
     if window > 1:
         column_rr = column + '_rr' + str(window)
         print("Calculating '{0}' run rate for window size {1}".format(column, window))
@@ -93,6 +91,7 @@ def return_column(df=None, column=None, window=1, shift=1):
     column_squared_error = column_shift + '_sqerr'
     df[column_squared_error] = np.square(df[column_return])
 
+    print("Standard deviation of '{0}' is {1}".format(column, df[column_squared_error].mean()))
     print("Average volatility of '{0}' is {1}".format(column, np.sqrt(df[column_squared_error].mean())))
 
     return df
@@ -110,7 +109,7 @@ def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
     return startdate, startvalue, enddate, endvalue, endvalue-startvalue, (endvalue-startvalue)/startvalue
 
 
-def get_returns(df=None, column=None, uselogs=True):
+def returns_column(df=None, column=None, uselogs=True):
     """
     Calculate return from timeseries of prices
     """
