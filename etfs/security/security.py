@@ -3,7 +3,7 @@
 from os import path
 import datetime
 from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote, get_company_name
-from etfs.stats.basics import get_returns
+from etfs.stats.basics import returns_column
 
 
 class Security(object):
@@ -83,7 +83,7 @@ class Security(object):
         self.dividends = self.dividends + price*quantity
 
     def get_returns(self, column='Close'):
-        self.data = get_returns(df=self.data, column=column)
+        self.data = returns_column(df=self.data, column=column)
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
@@ -101,6 +101,6 @@ class Security(object):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = get_returns(df=_benchmark.data, column='Close', uselogs=True)
+        _benchmark.data = returns_column(df=_benchmark.data, column='Close', uselogs=True)
 
         self.benchmark = _benchmark

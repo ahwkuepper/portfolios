@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 from etfs.security.security import Security
 from etfs.utils.helpers import todays_date
-from etfs.stats.basics import rsq, get_returns
+from etfs.stats.basics import rsq, returns_column
 
 
 class Portfolio(object):
@@ -349,7 +349,7 @@ class Portfolio(object):
         self.timeseries_growth = _df_ts[["Total", "Total_growth", "Growth"]]
 
     def get_returns(self, column='Total'):
-        self.timeseries_growth = get_returns(df=self.timeseries_growth, column=column)
+        self.timeseries_growth = returns_column(df=self.timeseries_growth, column=column)
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
@@ -362,7 +362,7 @@ class Portfolio(object):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = get_returns(df=_benchmark.data, column='Close', uselogs=True)
+        _benchmark.data = returns_column(df=_benchmark.data, column='Close', uselogs=True)
 
         self.benchmark = _benchmark
 
@@ -384,7 +384,7 @@ class TotalPortfolioValue(object):
         self.data = data
 
     def get_returns(self, column='Total'):
-        self.data = get_returns(df=self.data, column=column)
+        self.data = returns_column(df=self.data, column=column)
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
@@ -400,7 +400,7 @@ class TotalPortfolioValue(object):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = get_returns(df=_benchmark.data, column='Close', uselogs=True)
+        _benchmark.data = returns_column(df=_benchmark.data, column='Close', uselogs=True)
 
         self.benchmark = _benchmark
 
