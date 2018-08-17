@@ -100,3 +100,13 @@ def plot_candlestick(security=None,
     output_notebook()
 
     show(p)
+
+
+def plot_composition(portfolio):
+    """
+    Shows breakdown of portfolio into asset classes
+    """
+    _df = portfolio.timeseries[portfolio.tickers_archive].copy()
+    _df = _df.divide(_df.sum(axis=1), axis=0).fillna(0)
+    plt.stackplot(_df.index,  _df[portfolio.tickers_archive].values.T)
+    plt.margins(0,0)
