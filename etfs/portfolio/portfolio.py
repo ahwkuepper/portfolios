@@ -3,18 +3,19 @@
 import numpy as np
 import pandas as pd
 import datetime
+from etfs import Asset
 from etfs.security.security import Security
 from etfs.utils.helpers import todays_date
 from etfs.stats.basics import rsq, returns_column
 
 
-class Portfolio(object):
+class Portfolio(Asset):
     """
        Class that holds several securities
     """
 
     def __init__(self, name):
-        self.name = name
+        super().__init__(name)
         self.securities = {}
         self.securities_archive = {}
         self.tickers = []
@@ -45,9 +46,6 @@ class Portfolio(object):
         else:
             self.index = self.index + 1
             return self.tickers[self.index-1]
-
-    def set_name(self, name):
-        self.name = name
 
     def get_cash(self, date='2100-01-01'):
         return self.wallet.loc[(self.wallet.Date <= date), "Change"].sum()
@@ -349,7 +347,39 @@ class Portfolio(object):
         self.timeseries_growth = _df_ts[["Total", "Total_growth", "Growth"]]
 
     def get_returns(self, column='Total'):
+        try:
+            self.timeseries
+        except AttributeError:
+            self.get_timeseries()
+        else:
+            pass
+
         self.timeseries_growth = returns_column(df=self.timeseries_growth, column=column)
+
+         # get date range from the transaction list
+        self.min_date = min(self.transactions.Date.min(), self.payments.Date.min())
+        self.max_date = datetime.datetime.now()
+
+        # make a list of days between min and max date as index for timeseries df
+        date_index = pd.date_range(self.min_date, self.max_date, freq='D')
+        _ts = pd.Series(range(len(date_index)), index=date_index)
+
+        # create timeseries df from date index and wallet entries
+        _df_ts = _ts.to_frame('Day')
+        #
+        
+        # join in daily price change data for each security
+        cols = []
+        for security in self.tickers:
+            _series = self.securities[security].data['Close']
+            _col_name = str(_series.name)+"_"+security
+            _series = _series.rename(_col_name)
+            _df_ts = _df_ts.join(_series, how='left', rsuffix='').fillna(method='ffill')
+            _df_ts = returns_column(df=_df_ts, column=_col_name, outname=security)
+            cols.append(_col_name)
+
+        self.returns = _df_ts.drop(cols, axis=1)
+
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         

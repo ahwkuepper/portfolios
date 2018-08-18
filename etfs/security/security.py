@@ -2,18 +2,19 @@
 
 from os import path
 import datetime
+from etfs import Asset
 from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote, get_company_name
 from etfs.stats.basics import returns_column
 
 
-class Security(object):
+class Security(Asset):
     """
        Class that holds a single security and some useful functions
     """
 
     def __init__(self, name, start='2000-01-01', end='2100-01-01'):
+        super().__init__(name)
         self.ticker = name
-        self.name = name
         self.set_name(name)
         self.load(start=start, end=end)
         self.get_last_price()
@@ -27,7 +28,10 @@ class Security(object):
         self.benchmark = None
 
     def set_name(self, name):
-        self.name = get_company_name(ticker=name)
+        try:
+            self.name = get_company_name(ticker=name)
+        except RuntimeError:
+            self.name = name
 
     def load(self, start='2000-01-01', end='2100-01-01'):
         """

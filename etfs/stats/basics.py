@@ -2,6 +2,7 @@
 
 import numpy as np
 from scipy.stats import linregress
+from etfs.utils.helpers import restrict_to_trading_days
 
 
 def runrate_column(df=None, column=None, window=5, win_type=None):
@@ -109,7 +110,7 @@ def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
     return startdate, startvalue, enddate, endvalue, endvalue-startvalue, (endvalue-startvalue)/startvalue
 
 
-def returns_column(df=None, column=None, uselogs=True):
+def returns_column(df=None, column=None, uselogs=True, outname='Return'):
     """
     Calculate return from timeseries of prices
     """
@@ -120,12 +121,17 @@ def returns_column(df=None, column=None, uselogs=True):
     def get_logratio(a,b):
         return np.log(a/b)
 
+    try:
+        out_col = outname
+    except NameError:
+        out_col = 'Return'
+
     _df, column_shift = shift_column(df, column=column, shift=1)
     
     if uselogs==False:
-        _df['Return'] = _df.apply(lambda row: get_reldiff(row[column], row[column_shift]), axis=1)
+        _df[out_col] = _df.apply(lambda row: get_reldiff(row[column], row[column_shift]), axis=1)
     else:
-        _df['Return'] = _df.apply(lambda row: get_logratio(row[column], row[column_shift]), axis=1)
+        _df[out_col] = _df.apply(lambda row: get_logratio(row[column], row[column_shift]), axis=1)
 
     return _df.drop(column_shift, axis=1)
 
@@ -143,6 +149,8 @@ def rsq(sec1=None, sec2=None, col1='Close', col2='Close'):
 
     _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]].dropna(how='any')
 
+    _df = restrict_to_trading_days(df=_df, exchange='NYSE')
+
     slope, intercept, r_value, p_value, std_err = linregress(_df[col1].values,_df[col2].values)
 
     return r_value**2
@@ -158,6 +166,9 @@ def beta(sec1=None, sec2=None, col1='Return', col2='Return'):
         col2 = str(col2)+"_2"
 
     _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]].dropna(how='any')
+
+    _df = restrict_to_trading_days(df=_df, exchange='NYSE')
+
     _cov = np.cov(_df[col1], _df[col2])[0,1]
     _var = np.var(_df[col2])
 
@@ -175,6 +186,5 @@ def alpha(sec1=None, sec2=None, col1='Return', col2='Return', risk_free_rate=.00
     _avg_return2 = sec2.data[col2].mean()
 
     return _avg_return1-risk_free_rate-_beta*(_avg_return2-risk_free_rate)
-
 
 
