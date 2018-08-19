@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from os import path
-import datetime
+from datetime import datetime as dt
 from etfs import Asset
 from etfs.security.io import read_yahoo_csv, retrieve_yahoo_quote, get_company_name
 from etfs.stats.basics import returns_column
@@ -33,28 +33,56 @@ class Security(Asset):
         except RuntimeError:
             self.name = name
 
-    def load(self, start='2000-01-01', end='2100-01-01'):
+    def load(self, datadir='../data/', start='2000-01-01', end='2100-01-01'):
         """
         Tries to load from csv first, then pulls from Yahoo!
         """
-        filepath = '../data/{0}.csv'.format(self.ticker)
+        filepath = '{0}{1}.csv'.format(datadir, self.ticker)
+        print("Checking {}".format(filepath))
+
+        # Try to convert input values into standard format
+        if type(start) != str:
+            start = '{0}-{1:02}-{2:02}'.format(start.year, start.month, start.day)
+        
+        start = start.replace('/', '-')
+ 
+        if type(end) != str:
+            end = '{0}-{1:02}-{2:02}'.format(end.year, end.month, end.day)
+    
+        end = end.replace('/', '-')
+
         if path.isfile(filepath):
             self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
+            if (self.data.index.max() < dt.strptime(end, '%Y-%m-%d')) | (self.data.index.min() > dt.strptime(start, '%Y-%m-%d')):
+                _refresh_success = self.refresh(datadir=datadir, start=start, end=end)
+                if _refresh_success:
+                    self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
         else:
             self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start, enddate=end)
+            self.save(filename="{}.csv".format(self.ticker), datadir=datadir)
 
-    def refresh(self, start='1900-01-01', end='2100-01-01'):
+    def refresh(self, datadir='../data/', start='1900-01-01', end='2100-01-01'):
         """
         Tries to load from csv first, then pulls from Yahoo!
         """
+        # Try to convert input values into standard format
+        if type(start) != str:
+            start = '{0}-{1:02}-{2:02}'.format(start.year, start.month, start.day)
+        
+        start = start.replace('/', '-')
+ 
+        if type(end) != str:
+            end = '{0}-{1:02}-{2:02}'.format(end.year, end.month, end.day)
+    
+        end = end.replace('/', '-')
+ 
         try:
             self.data = retrieve_yahoo_quote(ticker=self.ticker, startdate=start, enddate=end)
-            filepath = '../data/{0}.csv'.format(self.ticker)
-            print(filepath)
-            self.data.index.name = 'Date'
-            self.data.to_csv(filepath, header=True, index=True)
+            self.save(filename="{}.csv".format(self.ticker), datadir=datadir)
+            return 1
         except:
             print('Refresh failed')
+            return 0
 
     def get_last_price(self, column='Close'):
         self.last_price = self.data[column][-1]
@@ -92,7 +120,7 @@ class Security(Asset):
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
         self.min_date = self.data.index.min()
-        self.max_date = min(self.data.index.max(), datetime.datetime.now())
+        self.max_date = min(self.data.index.max(), dt.now())
 
         if benchmark_ticker == 'sp500' or benchmark_ticker == '^GSPC':
             _ticker = '^GSPC'

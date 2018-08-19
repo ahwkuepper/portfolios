@@ -109,13 +109,13 @@ def plot_composition(portfolio):
 
     portfolio.tickers_archive.sort()
     try:
-        portfolio.timeseries
+        portfolio.data
     except NameError:
         portfolio.get_timeseries()
     else:
         pass
 
-    _df = portfolio.timeseries[portfolio.tickers_archive].copy()
+    _df = portfolio.data[portfolio.tickers_archive].copy()
     _df = _df.divide(_df.sum(axis=1), axis=0).fillna(0)
     plt.stackplot(_df.index,  _df[portfolio.tickers_archive].values.T)
     plt.margins(0,0)

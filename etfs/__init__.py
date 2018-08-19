@@ -5,4 +5,4 @@ __all__ = ["basics", "checks", "portfolio", "security", "stats", "utils", "visua
 from etfs.basics.asset import Asset
 from etfs.security.security import Security
 from etfs.portfolio.portfolio import Portfolio, TotalPortfolioValue
-
+from etfs.treasury.treasury import Treasury

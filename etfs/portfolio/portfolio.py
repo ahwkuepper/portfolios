@@ -343,18 +343,18 @@ class Portfolio(Asset):
         _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
         _df_ts["Growth"] = _df_ts["Total"]/_df_ts["Total_growth"]
 
-        self.timeseries = _df_ts[self.tickers_archive+["Cash" ,"Total"]]
-        self.timeseries_growth = _df_ts[["Total", "Total_growth", "Growth"]]
+        self.data = _df_ts[self.tickers_archive+["Cash" ,"Total"]]
+        self.data_growth = _df_ts[["Total", "Total_growth", "Growth"]]
 
     def get_returns(self, column='Total'):
         try:
-            self.timeseries
+            self.data
         except AttributeError:
             self.get_timeseries()
         else:
             pass
 
-        self.timeseries_growth = returns_column(df=self.timeseries_growth, column=column)
+        self.data_growth = returns_column(df=self.data_growth, column=column)
 
          # get date range from the transaction list
         self.min_date = min(self.transactions.Date.min(), self.payments.Date.min())
