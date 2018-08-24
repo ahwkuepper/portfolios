@@ -23,7 +23,7 @@ def plot_cross_correlation_matrix(portfolio=None):
 
     # Compute the correlation matrix
     _df = portfolio.returns[portfolio.tickers].copy()
-    _df = restrict_to_trading_days(df=_df, exchange='NYSE')
+    #_df = restrict_to_trading_days(df=_df, exchange='NYSE')
     corr = _df.corr()
 
     # Generate a mask for the upper triangle

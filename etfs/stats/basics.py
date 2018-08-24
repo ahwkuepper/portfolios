@@ -149,7 +149,7 @@ def rsq(sec1=None, sec2=None, col1='Close', col2='Close'):
 
     _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]].dropna(how='any')
 
-    _df = restrict_to_trading_days(df=_df, exchange='NYSE')
+    #_df = restrict_to_trading_days(df=_df, exchange='NYSE')
 
     slope, intercept, r_value, p_value, std_err = linregress(_df[col1].values,_df[col2].values)
 
@@ -167,7 +167,7 @@ def beta(sec1=None, sec2=None, col1='Return', col2='Return'):
 
     _df = sec1.data.join(sec2.data, how='inner', rsuffix='_2')[[col1, col2]].dropna(how='any')
 
-    _df = restrict_to_trading_days(df=_df, exchange='NYSE')
+    #_df = restrict_to_trading_days(df=_df, exchange='NYSE')
 
     _cov = np.cov(_df[col1], _df[col2])[0,1]
     _var = np.var(_df[col2])

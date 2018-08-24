@@ -49,10 +49,11 @@ def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101', 
  
     # Turn into pandas dataframe
     df = pd.DataFrame(data, columns=columns, index=index, dtype=np.float32)
- 
+    df.replace('null', np.NaN, inplace=True)
+
     # Drop nulls
     col_list = ['Close', 'Volume']
-    df = df.dropna(subset=col_list, how='any')
+    df = df.dropna(subset=col_list, how='any', )
  
     # Convert index to datetime
     df.index = pd.to_datetime(df.index)

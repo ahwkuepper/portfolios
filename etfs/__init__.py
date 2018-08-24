@@ -1,5 +1,5 @@
 # make subpackages available at the package level
-__all__ = ["basics", "checks", "portfolio", "security", "stats", "utils", "visualization"]
+__all__ = ["basics", "checks", "portfolio", "security", "stats", "treasury", "utils", "visualization"]
 
 # make classes and selected functions available at the package level
 from etfs.basics.asset import Asset
