@@ -3,13 +3,21 @@
 import pandas as pd
 import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup
+from etfs.utils.helpers import standard_date_format, todays_date
 
 
-def read_treasury_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
+def read_treasury_csv(path=None, startdate='2000-01-01', enddate=None):
     """
     Read locally stored csv with data from US Deparment of the Treasury.
 
-    """   
+    """
+    if enddate == None:
+        enddate = todays_date()
+
+    # convert dates to pandas format
+    startdate = standard_date_format(startdate)
+    enddate = standard_date_format(enddate)
+
     _df = pd.read_csv(path, index_col='Date', parse_dates=True)
 
     return _df.loc[(_df.index >= startdate) & (_df.index <= enddate)]
@@ -17,11 +25,19 @@ def read_treasury_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
 
 def retrieve_treasury_yield_curve_rates(url='https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yieldAll',
                                         startdate='20000101', 
-                                        enddate='21000101'):
+                                        enddate=None):
     """
     Download yield curve rates data from  US Deparment of the Treasury.
 
     """
+
+    if enddate == None:
+        enddate = todays_date()
+
+    # convert dates to pandas format
+    startdate = standard_date_format(startdate)
+    enddate = standard_date_format(enddate)
+
     _headers = {
         'User-Agent': 'Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11'
     }

@@ -5,7 +5,7 @@ import pandas as pd
 import datetime
 from etfs import Asset
 from etfs.security.security import Security
-from etfs.utils.helpers import todays_date
+from etfs.utils.helpers import todays_date, standard_date_format
 from etfs.stats.basics import rsq, returns_column
 
 
@@ -32,6 +32,7 @@ class Portfolio(Asset):
         self.index = 0
         self.benchmark_ticker = 'sp500'
         self.benchmark = None
+        self.raw_data = pd.DataFrame(columns=['Date', 'Transaction', 'Ticker', 'Currency', 'Price', 'Quantity'])
 
     def __iter__(self):
         return self
@@ -48,6 +49,8 @@ class Portfolio(Asset):
             return self.tickers[self.index-1]
 
     def get_cash(self, date='2100-01-01'):
+        date = standard_date_format(date)
+
         return self.wallet.loc[(self.wallet.Date <= date), "Change"].sum()
 
     def deposit_cash(self, date, currency='USD', price=1.0, quantity=0):
@@ -379,7 +382,6 @@ class Portfolio(Asset):
             cols.append(_col_name)
 
         self.returns = _df_ts.drop(cols, axis=1)
-
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         

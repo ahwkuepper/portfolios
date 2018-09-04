@@ -38,16 +38,25 @@ def parse_portfolio(df=None, p=None):
 
       for index, row in df.iterrows():
           if row.notnull()['Date']:
+              # add to portfolio raw data frame
+              new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                           'Transaction': [row['Transaction']], 
+                                           'Ticker': [row['Ticker']], 
+                                           'Currency': [row['Currency']], 
+                                           'Price': [row['Price']], 
+                                           'Quantity': [row['Quantity']]})
+              p.raw_data = p.raw_data.append(new_row)
+
               #print(row['Date'], row['Transaction'], row['Ticker'], row['Currency'], row['Price'], row['Quantity'])
-              if row['Transaction'] == 'buy':
+              if str.lower(row['Transaction']) == 'buy':
                   p.buy_security(date=row['Date'], 
                                  ticker=row['Ticker'], 
-                                 currency=row['Currency'], 
+                                 currency=row['Currency'],
                                  price=row['Price'], 
                                  quantity=row['Quantity'])
     
     
-              elif row['Transaction'] == 'sell':
+              elif str.lower(row['Transaction']) == 'sell':
                   p.sell_security(date=row['Date'], 
                                   ticker=row['Ticker'], 
                                   currency=row['Currency'], 
@@ -63,17 +72,18 @@ def parse_portfolio(df=None, p=None):
                                               'Change': -_FINRAfee -_SECfee
                                              }, ignore_index=True)
     
-              elif row['Transaction'] == 'deposit':
+              elif str.lower(row['Transaction']) == 'deposit':
                   p.deposit_cash(date=row['Date'], 
                                  currency=row['Currency'], 
                                  price=row['Price'], 
                                  quantity=row['Quantity'])
     
-              elif row['Transaction'] == 'withdraw':
+              elif str.lower(row['Transaction']) == 'withdraw':
                   p.withdraw_cash(date=row['Date'], 
                                   currency=row['Currency'], 
                                   price=row['Price'], 
                                   quantity=row['Quantity'])
+
               elif row['Transaction'] == 'Dividend':
                   p.dividend(date=row['Date'], 
                              ticker=row['Ticker'], 
@@ -87,11 +97,16 @@ def parse_portfolio(df=None, p=None):
                              currency=row['Currency'], 
                              price=row['Price'], 
                              quantity=row['Quantity'])
+
               else:
                   pass
           else:
               pass
  
+    # clean up
+    p.raw_data.sort_values(by='Date', inplace=True)
+    p.raw_data.reset_index(inplace=True, drop=True)
+
     return p
 
 
@@ -120,19 +135,27 @@ def parse_portfolio_vanguard(df=None, p=None):
 
     # loop through list of dataframes
     for df in dfs:
-
       # sort chronologically
       df = df.sort_values(by='Date')
 
       for index, row in df.iterrows():
           if row.notnull()['Date']:
               #print(row['Date'], row['Transaction'], row['Ticker'], row['Currency'], row['Price'], row['Quantity'], row['Dollars'])
+              
               if row['Transaction'] == 'Buy':
                   p.buy_security(date=row['Date'], 
                                  ticker=row['Ticker'], 
                                  currency=row['Currency'], 
                                  price=row['Price'], 
                                  quantity=row['Quantity'])
+
+                  new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                               'Transaction': ['buy'], 
+                                               'Ticker': [row['Ticker']], 
+                                               'Currency': [row['Currency']], 
+                                               'Price': [row['Price']], 
+                                               'Quantity': [row['Quantity']]})
+                  p.raw_data = p.raw_data.append(new_row)
     
               elif row['Transaction'] == 'Sell':
                   p.sell_security(date=row['Date'], 
@@ -140,18 +163,42 @@ def parse_portfolio_vanguard(df=None, p=None):
                                   currency=row['Currency'], 
                                   price=row['Price'], 
                                   quantity=row['Quantity'])
+
+                  new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                               'Transaction': ['sell'], 
+                                               'Ticker': [row['Ticker']], 
+                                               'Currency': [row['Currency']], 
+                                               'Price': [row['Price']], 
+                                               'Quantity': [row['Quantity']]})
+                  p.raw_data = p.raw_data.append(new_row)
     
               elif row['Transaction'] == 'Contribution' or row['Transaction'] == 'Funds Received':
                   p.deposit_cash(date=row['Date'], 
                                  currency=row['Currency'], 
                                  price=1.0, 
                                  quantity=row['Dollars'])
+
+                  new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                               'Transaction': ['deposit'], 
+                                               'Ticker': [''], 
+                                               'Currency': [row['Currency']], 
+                                               'Price': [1.0], 
+                                               'Quantity': [row['Dollars']]})
+                  p.raw_data = p.raw_data.append(new_row)
     
               elif row['Transaction'] == 'Distribution':
                   p.withdraw_cash(date=row['Date'], 
                                   currency=row['Currency'], 
                                   price=1.0, 
                                   quantity=row['Dollars'])
+
+                  new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                               'Transaction': ['withdraw'], 
+                                               'Ticker': [''], 
+                                               'Currency': [row['Currency']], 
+                                               'Price': [1.0], 
+                                               'Quantity': [row['Dollars']]})
+                  p.raw_data = p.raw_data.append(new_row)
     
               elif row['Transaction'] == 'Dividend':
                   p.dividend(date=row['Date'], 
@@ -159,6 +206,14 @@ def parse_portfolio_vanguard(df=None, p=None):
                              currency=row['Currency'], 
                              price=1.0, 
                              quantity=row['Dollars'])
+
+                  new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                               'Transaction': ['dividend'], 
+                                               'Ticker': [row['Ticker']], 
+                                               'Currency': [row['Currency']], 
+                                               'Price': [1.0], 
+                                               'Quantity': [row['Dollars']]})
+                  p.raw_data = p.raw_data.append(new_row)
     
               elif row['Transaction'] == 'Reinvestment' and row['Quantity'] != 0:
                   p.buy_security(date=row['Date'], 
@@ -166,11 +221,24 @@ def parse_portfolio_vanguard(df=None, p=None):
                                  currency=row['Currency'], 
                                  price=row['Price'], 
                                  quantity=row['Quantity'])
+
+                  new_row = pd.DataFrame(data={'Date': [row['Date']], 
+                                               'Transaction': ['buy'], 
+                                               'Ticker': [row['Ticker']], 
+                                               'Currency': [row['Currency']], 
+                                               'Price': [row['Price']], 
+                                               'Quantity': [row['Quantity']]})
+                  p.raw_data = p.raw_data.append(new_row)
     
               else:
                   pass
+
           else:
               pass      
+
+    # clean up
+    p.raw_data.sort_values(by='Date', inplace=True)
+    p.raw_data.reset_index(inplace=True, drop=True)
 
     return p
 
@@ -200,7 +268,7 @@ def import_portfolio(path="", name="RobinHood"):
     # parse
     parse_portfolio(df, p)
 
-    return df, p
+    return p
 
 
 def import_portfolio_vanguard(path="", name="Vanguard"):
@@ -246,5 +314,5 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
     # parse
     p = parse_portfolio_vanguard(df, p)
 
-    return df, p
+    return p
 

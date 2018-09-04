@@ -3,38 +3,43 @@
 import pandas as pd
 import numpy as np
 from etfs.security import yqd
+from etfs.utils.helpers import yahoo_date_format, standard_date_format, todays_date
 import urllib.request, urllib.parse, urllib.error
 import json
 import html
 
 
-def read_yahoo_csv(path=None, startdate='2000-01-01', enddate='2100-01-01'):
+def read_yahoo_csv(path=None, startdate='2000-01-01', enddate=None):
     """
     Read locally stored csv with data from Yahoo! Finance for a security.
  
     """
+    
+    if enddate == None:
+        enddate = todays_date()
+
+    # convert dates to pandas format
+    startdate = standard_date_format(startdate)
+    enddate = standard_date_format(enddate)
     
     df = pd.read_csv(path, index_col='Date', parse_dates=True)
  
     return df.loc[(df.index >= startdate) & (df.index <= enddate)]
 
 
-def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate='21000101', info = 'quote'):
+def retrieve_yahoo_quote(ticker=None, startdate='20000101', enddate=None, info = 'quote'):
     """
     Download data from Yahoo! Finance for a security.
     info can be quote, dividend, or split
  
     """
-    # Try to convert input values into right format for yahoo
-    if type(startdate) != str:
-       startdate = '{0}{1:02}{2:02}'.format(startdate.year, startdate.month, startdate.day)
- 
-    startdate = startdate.replace('-', '')
- 
-    if type(enddate) != str:
-       enddate = '{0}{1:02}{2:02}'.format(enddate.year, enddate.month, enddate.day)
-    
-    enddate = enddate.replace('-', '')
+
+    if enddate == None:
+        enddate = todays_date()
+
+    # convert input to yahoo standard
+    startdate = yahoo_date_format(startdate)
+    enddate = yahoo_date_format(enddate)
  
     # Use load_yahoo_quote from yqd to request Yahoo data
     output = yqd.load_yahoo_quote(ticker, startdate, enddate, info)
