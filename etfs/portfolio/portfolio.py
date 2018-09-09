@@ -20,7 +20,6 @@ class Portfolio(Asset):
         self.securities_archive = {}
         self.tickers = []
         self.tickers_archive = []
-        self.transactions = pd.DataFrame(columns=['Date', 'Ticker', 'Quantity', 'Price', 'TradeValue'])
         self.dividends = pd.DataFrame(columns=['Date', 'Ticker', 'Amount'])
         self.payments = pd.DataFrame(columns=['Date', 'In', 'Out'])
         self.wallet = pd.DataFrame(columns=['Date', 'Change'])
@@ -32,7 +31,8 @@ class Portfolio(Asset):
         self.index = 0
         self.benchmark_ticker = 'sp500'
         self.benchmark = None
-        self.raw_data = pd.DataFrame(columns=['Date', 'Transaction', 'Ticker', 'Currency', 'Price', 'Quantity'])
+        self.transactions = pd.DataFrame(columns=['Date', 'Transaction', 'Ticker', 'Currency', 'Price', 'Quantity'])
+
 
     def __iter__(self):
         return self
@@ -60,12 +60,23 @@ class Portfolio(Asset):
         """
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': 1.0*price*quantity
-                                          }, ignore_index=True)
+                                          }, ignore_index=True).sort_values('Date')
 
+        # store transaction in df
+        self.transactions = self.transactions.append({'Date': date,
+                                                      'Transaction': 'deposit',
+                                                      'Ticker': np.nan,
+                                                      'Currency': currency,
+                                                      'Price': 1.0*price,
+                                                      'Quantity': 1.0*quantity,
+                                                      'TradeValue': 1.0*price*quantity
+                                                      }, ignore_index=True, sort=False).sort_values('Date')
+
+        # store payment in df
         self.payments = self.payments.append({'Date': date,
                                               'In': 1.0*price*quantity,
                                               'Out': 0.0
-                                              }, ignore_index=True)
+                                              }, ignore_index=True).sort_values('Date')
 
         self.cash = self.get_cash(date=todays_date())
 
@@ -77,12 +88,23 @@ class Portfolio(Asset):
         """
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': -1.0*price*quantity
-                                          }, ignore_index=True)
+                                          }, ignore_index=True).sort_values('Date')
 
+        # store transaction in df
+        self.transactions = self.transactions.append({'Date': date,
+                                                      'Transaction': 'withdraw',
+                                                      'Ticker': np.nan,
+                                                      'Currency': currency,
+                                                      'Price': 1.0*price,
+                                                      'Quantity': 1.0*quantity,
+                                                      'TradeValue': 1.0*price*quantity
+                                                      }, ignore_index=True, sort=False).sort_values('Date')
+
+        # store payments in df
         self.payments = self.payments.append({'Date': date,
                                               'In': 0.0,
                                               'Out': 1.0*price*quantity
-                                              }, ignore_index=True)
+                                              }, ignore_index=True).sort_values('Date')
 
         self.cash = self.get_cash(date=todays_date())
 
@@ -97,13 +119,23 @@ class Portfolio(Asset):
         """
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': 1.0*price*quantity
-                                          }, ignore_index=True)
+                                          }, ignore_index=True).sort_values('Date')
 
         # store transaction in df
+        self.transactions = self.transactions.append({'Date': date,
+                                                      'Transaction': 'dividend',
+                                                      'Ticker': ticker,
+                                                      'Currency': currency,
+                                                      'Price': 1.0*price,
+                                                      'Quantity': 1.0*quantity,
+                                                      'TradeValue': 1.0*price*quantity
+                                                      }, ignore_index=True, sort=False).sort_values('Date')
+
+        # store dividends in df
         self.dividends = self.dividends.append({'Date': date,
                                                 'Ticker': ticker,
                                                 'Amount': 1.0*price*quantity
-                                                }, ignore_index=True)
+                                                }, ignore_index=True).sort_values('Date')
 
         self.cash = self.get_cash(date=todays_date())
 
@@ -144,16 +176,17 @@ class Portfolio(Asset):
         # store point in time value in wallet
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': -1.0*price*quantity
-                                          }, ignore_index=True)
-
+                                          }, ignore_index=True).sort_values('Date')
 
         # store transaction in df
         self.transactions = self.transactions.append({'Date': date,
+                                                      'Transaction': 'buy',
                                                       'Ticker': ticker,
-                                                      'Quantity': 1.0*quantity,
+                                                      'Currency': currency,
                                                       'Price': 1.0*price,
+                                                      'Quantity': 1.0*quantity,
                                                       'TradeValue': 1.0*price*quantity
-                                                      }, ignore_index=True)
+                                                      }, ignore_index=True, sort=False).sort_values('Date')
 
         self.cash = self.get_cash(date=todays_date())
 
@@ -164,8 +197,7 @@ class Portfolio(Asset):
         # store point in time value in wallet
         self.wallet = self.wallet.append({'Date': date,
                                           'Change': 1.0*price*quantity
-                                          }, ignore_index=True)
-
+                                          }, ignore_index=True).sort_values('Date')
 
         # get closing price of security for transaction date if price not provided
         if np.isnan(price):
@@ -173,18 +205,22 @@ class Portfolio(Asset):
 
         # store transaction in df
         self.transactions = self.transactions.append({'Date': date,
+                                                      'Transaction': 'sell',
                                                       'Ticker': ticker,
-                                                      'Quantity': -1.0*quantity,
+                                                      'Currency': currency,
                                                       'Price': 1.0*price,
-                                                      'TradeValue': -1.0*price*quantity
-                                                      }, ignore_index=True)
+                                                      'Quantity': 1.0*quantity,
+                                                      'TradeValue': 1.0*price*quantity
+                                                      }, ignore_index=True, sort=False).sort_values('Date')
 
         self.cash = self.get_cash(date=todays_date())
 
         print("selling {0:.2f} {1} (new balance: {2:.2f} {3})".format(quantity, ticker, self.cash, currency))
 
         # potentially remove ticker from list
-        if self.transactions.groupby(by='Ticker')['Quantity'].sum()[ticker] <= 0.0:
+        _df = self.transactions.loc[self.transactions.Transaction.isin(('buy', 'sell')), :].copy()
+        _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
+        if _df.groupby(by=['Ticker'])['Quantity'].sum()[ticker] <= 0.0:
             self.remove_security(ticker)
             # print('removing', ticker)
 
@@ -192,8 +228,12 @@ class Portfolio(Asset):
 
         # you have to have one security in the portfolio for meaningful output
         if len(self.securities) > 0:
+ 
             # sum up by ticker
-            self.overview_df = self.transactions.groupby(by='Ticker')['Quantity', 'TradeValue'].sum()
+            _df = self.transactions.loc[self.transactions.Transaction.isin(('buy', 'sell')), :].copy()
+            _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
+            _df.loc[_df.Transaction == 'sell', 'TradeValue'] = _df.loc[_df.Transaction == 'sell', 'TradeValue'].apply(lambda x: -x)
+            self.overview_df = _df.groupby(by=['Ticker'])['Quantity', 'TradeValue'].sum()
             self.overview_df = self.overview_df.loc[self.overview_df.Quantity > 0]
             
             # check if sum over volume of a security is < 0
@@ -234,9 +274,9 @@ class Portfolio(Asset):
 
 
         # update portfolio stats
-        self.total_portfolio_value = self.overview_df[['CurrentValue']].sum().values[0] + self.cash
         self.total_security_value = self.overview_df[['CurrentValue']].sum().values[0]
-        self.return_value = self.overview_df[['CurrentValue']].sum().values[0] + self.cash - self.payments['In'].sum()
+        self.total_portfolio_value = self.total_security_value + self.cash
+        self.return_value = self.total_security_value + self.cash - self.payments['In'].sum()
         if self.total_portfolio_value:
             self.return_rate = self.return_value/self.total_portfolio_value
         else:
@@ -258,14 +298,19 @@ class Portfolio(Asset):
         # you have to have one security in the portfolio for meaningful output
         if len(self.securities) > 0:
             # sum up by ticker
-            self.positions_df = self.transactions.groupby(by=['Ticker'])['Quantity', 'TradeValue'].sum()
-            buy = [Quantity > 0 for Quantity in self.transactions.Quantity]
-            self.positions_df["Bought"] = self.transactions[buy].groupby(by=['Ticker'])['Quantity'].sum()
-            self.positions_df["Invested"] = self.transactions[buy].groupby(by=['Ticker'])['TradeValue'].sum()
 
-            sell = [Quantity < 0 for Quantity in self.transactions.Quantity]
-            self.positions_df["Sold"] = -1.0*self.transactions[sell].groupby(by=['Ticker'])['Quantity'].sum()
-            self.positions_df["Devested"] = -1.0*self.transactions[sell].groupby(by=['Ticker'])['TradeValue'].sum()
+            _df = self.transactions.loc[self.transactions.Transaction.isin(('buy', 'sell')), :].copy()
+            _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
+            _df.loc[_df.Transaction == 'sell', 'TradeValue'] = _df.loc[_df.Transaction == 'sell', 'TradeValue'].apply(lambda x: -x)
+            self.positions_df = _df.groupby(by=['Ticker'])['Quantity', 'TradeValue'].sum()
+
+            # sum up purchases
+            self.positions_df["Bought"] = _df.loc[_df.Transaction == 'buy', :].groupby(by=['Ticker'])['Quantity'].sum()
+            self.positions_df["Invested"] = _df.loc[_df.Transaction == 'buy', :].groupby(by=['Ticker'])['TradeValue'].sum()
+
+            # sum up sales
+            self.positions_df["Sold"] = _df.loc[_df.Transaction == 'sell', :].groupby(by=['Ticker'])['Quantity'].sum()
+            self.positions_df["Devested"] = _df.loc[_df.Transaction == 'sell', :].groupby(by=['Ticker'])['TradeValue'].sum()
 
             # check if sum over volume of a security is < 0
             for index, row in self.positions_df.iterrows():
@@ -323,11 +368,15 @@ class Portfolio(Asset):
             _df_ts = _df_ts.join(_series, how='left', rsuffix='').fillna(method='ffill')
 
         for security in self.tickers_archive:
-            _df = self.transactions.loc[self.transactions.Ticker == self.securities_archive[security].ticker, 
-                ['Date', 'Quantity']].groupby(by=["Date"]).sum().cumsum()
+            _df = self.transactions.loc[(self.transactions.Ticker == self.securities_archive[security].ticker) & \
+                                        (self.transactions.Transaction.isin(('buy', 'sell'))), :].copy()
+            _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
+            _df = _df[['Date', 'Quantity']].groupby(by=["Date"]).sum().cumsum()
             _df.columns = _df.columns.map(lambda x: str(x)+"_"+security)
             _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
-
+        
+        # fill all values forward then calculate value in portfolio
+        _df_ts = _df_ts.fillna(method='ffill')
         for security in self.tickers_archive:
             _df_ts[security] = _df_ts["Close_"+security]*_df_ts["Quantity_"+security]
 
@@ -342,12 +391,12 @@ class Portfolio(Asset):
 
         # calculate portfolio value
         _df = self.payments.groupby(by=["Date"]).sum().cumsum()
-        _df["Total_growth"] = _df["In"] + _df["Out"]
+        _df["Total_deposited"] = _df["In"] + _df["Out"]
         _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
-        _df_ts["Growth"] = _df_ts["Total"]/_df_ts["Total_growth"]
+        _df_ts["Growth"] = _df_ts["Total"]/_df_ts["Total_deposited"]
 
         self.data = _df_ts[self.tickers_archive+["Cash" ,"Total"]]
-        self.data_growth = _df_ts[["Total", "Total_growth", "Growth"]]
+        self.data_growth = _df_ts[["Total", "Total_deposited", "Growth"]]
 
     def get_returns(self, column='Total'):
         try:
