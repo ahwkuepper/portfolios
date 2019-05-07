@@ -57,7 +57,7 @@ def parse_portfolio(df=None, p=None):
                   # FINRA fee of $.000119 per share up to $5.95
                   _FINRAfee = min(max(ceil(0.0119*row['Quantity']), 1.0)/100.0, 5.95)
                   # SEC fee of $.000013 per trade of up to $1M
-                  _SECfee = max(ceil(0.0013*row['Quantity']*row['Price']), 1.0)/100.0
+                  _SECfee = max(ceil(row['Quantity']*row['Price']/800.0), 1.0)/100.0
                   
                   p.wallet = p.wallet.append({'Date': row['Date'],
                                               'Change': -_FINRAfee -_SECfee
@@ -143,7 +143,8 @@ def parse_portfolio_vanguard(df=None, p=None):
                                   price=row['Price'], 
                                   quantity=row['Quantity'])
     
-              elif row['Transaction'] == 'Contribution' or row['Transaction'] == 'Funds Received':
+              elif row['Transaction'] == 'Contribution' or row['Transaction'] == 'Funds Received' \
+                or row['Transaction'] == 'Conversion (incoming)':
                   p.deposit_cash(date=row['Date'], 
                                  currency=row['Currency'], 
                                  price=1.0, 

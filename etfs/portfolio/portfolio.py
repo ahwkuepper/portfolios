@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import datetime
+from collections import deque
 from etfs import Asset
 from etfs.security.security import Security
 from etfs.utils.helpers import todays_date, standard_date_format
@@ -28,6 +29,9 @@ class Portfolio(Asset):
         self.cash = 0.0
         self.return_value = 0.0
         self.return_rate = 0.0
+        self.prices = {}
+        self.prices_fifo = {}
+        self.prices_lifo = {}
         self.index = 0
         self.benchmark_ticker = 'sp500'
         self.benchmark = None
@@ -145,9 +149,16 @@ class Portfolio(Asset):
             print("dividend {0} {1:.2f} {3} (new balance: {2:.2f} {3})".format(ticker, quantity*price, self.cash, currency))
 
     def add_security(self, ticker):
-        _security = Security(ticker)
-        self.securities[_security.ticker] = _security
-        self.tickers.append(ticker)
+        if ticker in self.securities_archive:
+            self.securities[ticker] = self.securities_archive[ticker]
+            self.tickers.append(ticker)
+        else:
+            _security = Security(ticker)
+            self.securities[_security.ticker] = _security
+            self.tickers.append(ticker)
+            self.prices[ticker] = deque()
+            self.prices_lifo[ticker] = deque()
+            self.prices_fifo[ticker] = deque()
 
     def add_security_archive(self, ticker):
         _security = Security(ticker)
@@ -155,6 +166,9 @@ class Portfolio(Asset):
         self.tickers_archive.append(ticker)
 
     def remove_security(self, ticker):
+        # copy state of security to archive
+        self.securities_archive[ticker] = self.securities[ticker]
+        # delete from current list of securities
         del self.securities[ticker]
         self.tickers.remove(ticker)
 
@@ -172,6 +186,11 @@ class Portfolio(Asset):
         # get closing price of security for transaction date if price not provided
         if np.isnan(price):
             price = self.securities[ticker].get_price_at(date)
+
+        for i in range(np.int(quantity)):
+            self.prices[ticker].append(price)
+            self.prices_lifo[ticker].append(price)
+            self.prices_fifo[ticker].append(price)
 
         # store point in time value in wallet
         self.wallet = self.wallet.append({'Date': date,
@@ -202,6 +221,11 @@ class Portfolio(Asset):
         # get closing price of security for transaction date if price not provided
         if np.isnan(price):
             price = self.securities[ticker].get_price_at(date)
+
+        # remove number of securities from prices deque
+        for i in range(np.int(quantity)):
+            _ = self.prices_fifo[ticker].popleft()
+            _ = self.prices_lifo[ticker].pop()
 
         # store transaction in df
         self.transactions = self.transactions.append({'Date': date,
@@ -234,16 +258,27 @@ class Portfolio(Asset):
             _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
             _df.loc[_df.Transaction == 'sell', 'TradeValue'] = _df.loc[_df.Transaction == 'sell', 'TradeValue'].apply(lambda x: -x)
             self.overview_df = _df.groupby(by=['Ticker'])['Quantity', 'TradeValue'].sum()
-            self.overview_df = self.overview_df.loc[self.overview_df.Quantity > 0]
             
             # check if sum over volume of a security is < 0
             for index, row in self.overview_df.iterrows():
                 if row['Quantity'] < 0.0:
                     print('Negative volume encountered: {0:5}\t{1}'.format(index, row['Quantity']))
 
+            # restrict to securities with volume > 0
+            self.overview_df = self.overview_df.loc[self.overview_df.Quantity > 0]
+
             for ticker in self.tickers:
                 self.overview_df.loc[self.overview_df.index == ticker, 
                                      'LastPrice'] = self.securities[ticker].get_last_price()
+                # calculate average security prices from deque of prices
+                self.overview_df.loc[self.overview_df.index == ticker, 
+                                     'AvgPriceAll'] = np.mean(self.prices[ticker])
+                # calculate average security prices from deque of prices
+                self.overview_df.loc[self.overview_df.index == ticker, 
+                                     'AvgPriceFiFo'] = np.mean(self.prices_fifo[ticker])
+                # calculate average security prices from deque of prices (last in first out)
+                self.overview_df.loc[self.overview_df.index == ticker, 
+                                     'AvgPriceLiFo'] = np.mean(self.prices_lifo[ticker])
         
             self.overview_df['CurrentValue'] = self.overview_df['LastPrice'] * self.overview_df['Quantity']
 
@@ -263,6 +298,9 @@ class Portfolio(Asset):
         # make dummy df when no (more) securities in portfolio
         else:
             _d = {'Quantity': [0],
+                 'AvgPriceAll': [0], 
+                 'AvgPriceFiFo': [0], 
+                 'AvgPriceLiFo': [0], 
                  'AvgPrice': [0], 
                  'TradeValue': [0], 
                  'LastPrice': [0], 
@@ -283,7 +321,7 @@ class Portfolio(Asset):
             self.return_rate = 0.0
 
 
-        print(self.overview_df[['Quantity', 'AvgPrice', 'LastPrice', 'TradeValue', 'CurrentValue', 'Dividends', 'Return', 'Description']])
+        print(self.overview_df[['Quantity', 'AvgPriceAll', 'AvgPriceFiFo', 'AvgPriceLiFo', 'AvgPrice', 'LastPrice', 'TradeValue', 'CurrentValue', 'Dividends', 'Return', 'Description']])
         print()
         print("Total portfolio value:\t{0:8.2f} USD\nTotal security value:\t{1:8.2f} USD\nCash in wallet:\t\t{2:8.2f} USD\nTotal return:\t\t{3:8.2f} USD\t({4:.2f}%)".format(
             self.total_portfolio_value,
