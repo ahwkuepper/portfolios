@@ -306,7 +306,8 @@ class Portfolio(Asset):
                  'LastPrice': [0], 
                  'CurrentValue': [0],
                  'Dividends': [0], 
-                 'Return': [0]
+                 'Return': [0],
+                 'Description': [np.nan]
                  }
             self.overview_df = pd.DataFrame(data=_d, index=[''])
 
@@ -331,6 +332,71 @@ class Portfolio(Asset):
             self.return_rate*100.0
             )
         )
+
+
+    def overview_archive(self):
+
+        # you have to have one security historically in the portfolio for meaningful output
+        if len(self.securities_archive) > 0:
+ 
+            # sum up by ticker
+            _df = self.transactions.loc[self.transactions.Transaction.isin(('buy', 'sell')), :].copy()
+            _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
+            _df.loc[_df.Transaction == 'sell', 'TradeValue'] = _df.loc[_df.Transaction == 'sell', 'TradeValue'].apply(lambda x: -x)
+            self.overview_archive_df = _df.groupby(by=['Ticker'])['Quantity', 'TradeValue'].sum()
+            
+            # check if sum over volume of a security is < 0
+            for index, row in self.overview_archive_df.iterrows():
+                if row['Quantity'] < 0.0:
+                    print('Negative volume encountered: {0:5}\t{1}'.format(index, row['Quantity']))
+
+            # restrict to securities with volume == 0 (if in portfolio)
+            if len(self.overview_archive_df.loc[self.overview_archive_df.Quantity == 0]):
+                self.overview_archive_df = self.overview_archive_df.loc[self.overview_archive_df.Quantity == 0]
+
+                for ticker in self.tickers_archive:
+                    self.overview_archive_df.loc[self.overview_archive_df.index == ticker, 
+                                         'LastPrice'] = self.securities_archive[ticker].get_last_price()
+                    # calculate average security prices from deque of prices
+                    self.overview_archive_df.loc[self.overview_archive_df.index == ticker, 
+                                         'AvgPriceAll'] = np.mean(self.prices[ticker])
+             
+                # sum up dividends by ticker
+                self.overview_archive_df['Dividends'] = self.dividends.groupby(by='Ticker')['Amount'].sum()
+                self.overview_archive_df.fillna(0.0, inplace=True)
+                self.overview_archive_df['Return'] = -self.overview_archive_df['TradeValue'] + self.overview_archive_df['Dividends']
+               
+                # join in names of securities
+                for ticker in self.tickers_archive:
+                    self.overview_archive_df.loc[self.overview_archive_df.index == ticker, 
+                                         'Description'] = self.securities_archive[ticker].name           
+
+            # make dummy df when no (more) securities are in portfolio archive that are not in portfolio
+            else:
+                _d = {'Quantity': [0],
+                     'AvgPriceAll': [0], 
+                     'TradeValue': [0], 
+                     'LastPrice': [0], 
+                     'Dividends': [0], 
+                     'Return': [0],
+                     'Description': [np.nan]
+                     }
+                self.overview_archive_df = pd.DataFrame(data=_d, index=[''])
+
+        # make dummy df when no (more) securities are in portfolio archive that are not in portfolio
+        else:
+            _d = {'Quantity': [0],
+                 'AvgPriceAll': [0], 
+                 'TradeValue': [0], 
+                 'LastPrice': [0], 
+                 'Dividends': [0], 
+                 'Return': [0],
+                 'Description': [np.nan]
+                 }
+            self.overview_archive_df = pd.DataFrame(data=_d, index=[''])
+
+        print(self.overview_archive_df[['Quantity', 'AvgPriceAll', 'LastPrice', 'TradeValue', 'Dividends', 'Return', 'Description']])
+
 
     def positions(self):
         # you have to have one security in the portfolio for meaningful output
@@ -385,6 +451,7 @@ class Portfolio(Asset):
 
         else:
              print("No positions in portfolio.")
+
 
     def get_timeseries(self):
 
@@ -481,7 +548,7 @@ class Portfolio(Asset):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = returns_column(df=_benchmark.data, column='Close', uselogs=True)
+        _benchmark.data = returns_column(df=_benchmark.data, column='Close')
 
         self.benchmark = _benchmark
 
@@ -519,7 +586,7 @@ class TotalPortfolioValue(object):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = returns_column(df=_benchmark.data, column='Close', uselogs=True)
+        _benchmark.data = returns_column(df=_benchmark.data, column='Close')
 
         self.benchmark = _benchmark
 

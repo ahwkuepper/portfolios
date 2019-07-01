@@ -5,6 +5,8 @@ import pandas as pd
 import csv
 from math import ceil
 from etfs.portfolio.portfolio import Portfolio
+import os
+import glob
 
 
 def parse_portfolio(df=None, p=None):
@@ -34,7 +36,7 @@ def parse_portfolio(df=None, p=None):
     for df in dfs:
 
       # sort chronologically
-      df = df.sort_values(by='Date')
+      df = df.sort_values(by=['Date'])
 
       for index, row in df.iterrows():
           if row.notnull()['Date']:
@@ -195,8 +197,22 @@ def import_portfolio(path="", name="RobinHood"):
 
     """
 
-    # read in transaction list
-    df = pd.read_csv(path, parse_dates=[0])
+    # get all files that match path
+    all_files = glob.glob(path)
+    all_dfs = []
+
+    for file in all_files:
+
+        print("Reading in {}".format(file))
+
+        # read in transaction list
+        df = pd.read_csv(file, parse_dates=[0])
+
+        # collect all dfs before concatenating them
+        all_dfs.append(df)
+
+    # final portfolio df to parse
+    df = pd.concat(all_dfs, axis=0, ignore_index=True)
 
     # create a new portfolio object
     p = Portfolio(name=name)
@@ -223,26 +239,40 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
 
     """
 
-    # read in csv to find beginning of transaction list
-    input_file = csv.reader(open(path, "r"), delimiter=",")
+    # get all files that match path
+    all_files = glob.glob(path)
+    all_dfs = []
 
-    for i,row in enumerate(input_file):
-        if len(row) > 0 and 'Trade' in row[1]:
-            break
+    for file in all_files:
 
-    # read in transaction list
-    df = pd.read_csv(path,
-                     skiprows=i,
-                     usecols=['Trade Date', 'Transaction Type', 'Symbol', 'Share Price', 'Shares', 'Principal Amount'],
-                     parse_dates=['Trade Date'],
-                     skip_blank_lines=False
-                     )
+        print("Reading in {}".format(file))
 
-    # rename columns to match standard format
-    df.columns = ['Date', 'Transaction', 'Ticker', 'Quantity', 'Price', 'Dollars']
+        # read in csv to find beginning of transaction list
+        input_file = csv.reader(open(file, "r"), delimiter=",")
 
-    # add a currency column to match standard format
-    df["Currency"] = 'USD'
+        for i,row in enumerate(input_file):
+            if len(row) > 0 and 'Trade' in row[1]:
+                break
+
+        # read in transaction list
+        df = pd.read_csv(file,
+                         skiprows=i,
+                         usecols=['Trade Date', 'Transaction Type', 'Symbol', 'Share Price', 'Shares', 'Principal Amount'],
+                         parse_dates=['Trade Date'],
+                         skip_blank_lines=False
+                         )
+
+        # rename columns to match standard format
+        df.columns = ['Date', 'Transaction', 'Ticker', 'Quantity', 'Price', 'Dollars']
+
+        # add a currency column to match standard format
+        df["Currency"] = 'USD'
+        
+        # collect all dfs before concatenating them
+        all_dfs.append(df)
+
+    # final portfolio df to parse
+    df = pd.concat(all_dfs, axis=0, ignore_index=True)
 
     # create a new portfolio object
     p = Portfolio(name=name)
@@ -251,4 +281,112 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
     p = parse_portfolio_vanguard(df, p)
 
     return p
+
+
+
+
+
+def import_portfolio_robinhood(username=None, password=None, name="Robinhood", free_stock=False):
+    """
+    Accesses Robinhood account and downloads transactions 
+
+    Parameters
+    ==========
+    username : Robinhood username
+    password : Robinhood account password
+    name : desired portfolio name 
+    free_stock : include a free stock not captured by transaction history (see below)
+
+    Returns
+    =======
+    df : dataframe with transactions
+    p : portfolio (Portfolio class object)
+
+    """
+    import robin_stocks as r
+    from getpass import getpass
+
+    if username is None: username = getpass("Username: ")
+    if password is None: password = getpass("Password: ")
+
+    # use Robinhood api to download transaction history
+    r.login(username, password)
+    
+    # build dataframe
+    Date = []
+    Transaction = []
+    Ticker = []
+    Currency = []
+    Price = []
+    Quantity = []
+
+    # parse order history
+    orders = r.get_all_orders()
+    print("Parsing orders ...")
+    for order in orders:
+        if len(order['executions']):
+            Date.append(pd.to_datetime(order['last_transaction_at']))
+            Transaction.append(order['side'])
+            Ticker.append(r.get_instrument_by_url(order['instrument'])['symbol'])
+            Currency.append('USD')
+            Price.append(order['average_price'])
+            Quantity.append(order['quantity'])
+
+    # add deposits
+    transfers = r.get_bank_transfers()
+    print("Parsing bank transfers ...")
+    for transfer in transfers:
+        if transfer['cancel'] is None:
+            Date.append(pd.to_datetime(transfer['created_at']))
+            Transaction.append('deposit')
+            Ticker.append(None)
+            Currency.append('USD')
+            Price.append(1.0)
+            Quantity.append(transfer['amount'])
+
+    # add dividends
+    dividends = r.get_dividends()
+    print("Parsing dividends ...")
+    for dividend in dividends:
+        if dividend['state'] == 'paid':
+            Date.append(pd.to_datetime(dividend['paid_at']))
+            Transaction.append('dividend')
+            Ticker.append(r.get_instrument_by_url(dividend['instrument'])['symbol'])
+            Currency.append('USD')
+            Price.append(float(dividend['amount'])/float(dividend['position']))
+            Quantity.append(dividend['position'])
+
+    if free_stock == True:
+        # include free stock (Robinhood promotion, not included in transaction history)
+        print("Adding promotional stock ...")
+        Date.append(pd.to_datetime('2/1/18'))
+        Transaction.append('buy')
+        Ticker.append('CHK')
+        Currency.append('USD')
+        Price.append(0.0)
+        Quantity.append(1.0)
+
+    # build dataframe
+    d = {'Date': Date, 
+     'Transaction': Transaction,
+     'Ticker': Ticker,
+     'Currency': Currency,
+     'Price': pd.to_numeric(Price),
+     'Quantity': pd.to_numeric(Quantity)
+    }
+    df = pd.DataFrame(data=d)
+
+    # strip time of day information
+    df.Date = df.Date.map(lambda x: x.strftime('%m-%d-%Y'))
+    df.Date = pd.to_datetime(df.Date)
+    df.sort_values(by=['Date', 'Transaction'], inplace=True)
+    
+    # create a new portfolio object
+    p = Portfolio(name=name)
+
+    # parse
+    p = parse_portfolio(df, p)
+
+    return p
+
 

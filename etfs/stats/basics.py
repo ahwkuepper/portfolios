@@ -58,8 +58,8 @@ def resample_df(df=None, column=None, resolution='B'):
     """
     Resample data with new resolution, return as new dataframe
     """
-
-    return df.resample(resolution).agg({column: ['mean', 'std', 'median']})
+    if column is None: column = df.columns
+    return df.resample(resolution, level=0).agg({column: ['mean', 'std', 'median']})
  
 
 def shift_column(df=None, column=None, shift=1):
