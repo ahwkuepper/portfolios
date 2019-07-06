@@ -35,8 +35,22 @@ def parse_portfolio(df=None, p=None):
     # loop through list of dataframes
     for df in dfs:
 
-      # sort chronologically
-      df = df.sort_values(by=['Date'])
+      # define a priority for transaction types so ordering makes sense
+      df.loc[df.Transaction == 'deposit', 'Priority'] = 1
+      df.loc[df.Transaction == 'Contribution', 'Priority'] = 1
+      df.loc[df.Transaction == 'Funds Received', 'Priority'] = 1
+      df.loc[df.Transaction == 'Conversion (incoming)', 'Priority'] = 1
+      df.loc[df.Transaction == 'buy', 'Priority'] = 2
+      df.loc[df.Transaction == 'Buy', 'Priority'] = 2
+      df.loc[df.Transaction == 'Reinvestment', 'Priority'] = 2
+      df.loc[df.Transaction == 'dividend', 'Priority'] = 3
+      df.loc[df.Transaction == 'Dividend', 'Priority'] = 3
+      df.loc[df.Transaction == 'sell', 'Priority'] = 4
+      df.loc[df.Transaction == 'Sell', 'Priority'] = 4
+      df.loc[df.Transaction == 'withdraw', 'Priority'] = 5
+      df.loc[df.Transaction == 'Distribution', 'Priority'] = 5
+
+      df.sort_values(by=['Date', 'Priority'], inplace=True)
 
       for index, row in df.iterrows():
           if row.notnull()['Date']:
@@ -124,8 +138,22 @@ def parse_portfolio_vanguard(df=None, p=None):
 
     # loop through list of dataframes
     for df in dfs:
-      # sort chronologically
-      df = df.sort_values(by='Date')
+      # define a priority for transaction types so ordering makes sense
+      df.loc[df.Transaction == 'deposit', 'Priority'] = 1
+      df.loc[df.Transaction == 'Contribution', 'Priority'] = 1
+      df.loc[df.Transaction == 'Funds Received', 'Priority'] = 1
+      df.loc[df.Transaction == 'Conversion (incoming)', 'Priority'] = 1
+      df.loc[df.Transaction == 'buy', 'Priority'] = 2
+      df.loc[df.Transaction == 'Buy', 'Priority'] = 2
+      df.loc[df.Transaction == 'Reinvestment', 'Priority'] = 2
+      df.loc[df.Transaction == 'dividend', 'Priority'] = 3
+      df.loc[df.Transaction == 'Dividend', 'Priority'] = 3
+      df.loc[df.Transaction == 'sell', 'Priority'] = 4
+      df.loc[df.Transaction == 'Sell', 'Priority'] = 4
+      df.loc[df.Transaction == 'withdraw', 'Priority'] = 5
+      df.loc[df.Transaction == 'Distribution', 'Priority'] = 5
+
+      df.sort_values(by=['Date', 'Priority'], inplace=True)
 
       for index, row in df.iterrows():
           if row.notnull()['Date']:
@@ -379,8 +407,7 @@ def import_portfolio_robinhood(username=None, password=None, name="Robinhood", f
     # strip time of day information
     df.Date = df.Date.map(lambda x: x.strftime('%m-%d-%Y'))
     df.Date = pd.to_datetime(df.Date)
-    df.sort_values(by=['Date', 'Transaction'], inplace=True)
-    
+
     # create a new portfolio object
     p = Portfolio(name=name)
 
