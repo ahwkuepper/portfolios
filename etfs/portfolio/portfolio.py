@@ -552,6 +552,33 @@ class Portfolio(Asset):
 
         self.benchmark = _benchmark
 
+    def get_performance(self):
+        try:
+            self.data
+        except AttributeError:
+            self.get_timeseries()
+        else:
+            pass
+        
+        years = []
+        growths = []
+        dollar_returns = []
+        for year in self.data_growth.index.year.unique():
+            # get first and last day of year
+            min_date = self.data_growth.loc[self.data_growth.index.year == year, :].index.min()
+            max_date = self.data_growth.loc[self.data_growth.index.year == year, :].index.max()
+
+            # compare growth (percentage and dollars) between end of year and beginning of year
+            growth = 100*(self.data_growth.loc[self.data_growth.index == max_date, "Growth"].values[0]-self.data_growth.loc[self.data_growth.index == min_date, "Growth"].values[0])
+            dollar_return = (self.data_growth.loc[self.data_growth.index == max_date, "Total"].values[0]-self.data_growth.loc[self.data_growth.index == max_date, "Total_deposited"].values[0]) \
+                            - (self.data_growth.loc[self.data_growth.index == min_date, "Total"].values[0]-self.data_growth.loc[self.data_growth.index == min_date, "Total_deposited"].values[0])
+            years.append(year)
+            growths.append(growth)
+            dollar_returns.append(dollar_return)
+
+        _df = pd.DataFrame({"Year": years, "Growth": growths, "Return": dollar_returns})
+        
+        return _df
 
 
 class TotalPortfolioValue(object):
