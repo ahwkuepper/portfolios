@@ -171,7 +171,7 @@ def parse_portfolio_vanguard(df=None, p=None):
                                   ticker=row['Ticker'], 
                                   currency=row['Currency'], 
                                   price=row['Price'], 
-                                  quantity=row['Quantity'])
+                                  quantity=-row['Quantity']) #note the minus sign
     
               elif row['Transaction'] == 'Contribution' or row['Transaction'] == 'Funds Received' \
                 or row['Transaction'] == 'Conversion (incoming)':
