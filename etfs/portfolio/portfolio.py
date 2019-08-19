@@ -7,7 +7,7 @@ from collections import deque
 from etfs import Asset
 from etfs.security.security import Security
 from etfs.utils.helpers import todays_date, standard_date_format
-from etfs.stats.basics import rsq, returns_column
+from etfs.stats.basics import returns_column
 
 
 class Portfolio(Asset):
@@ -511,7 +511,7 @@ class Portfolio(Asset):
         else:
             pass
 
-        self.data_growth = returns_column(df=self.data_growth, column=column)
+        self.data_growth, _ = returns_column(df=self.data_growth, column=column)
 
          # get date range from the transaction list
         self.min_date = min(self.transactions.Date.min(), self.payments.Date.min())
@@ -532,7 +532,7 @@ class Portfolio(Asset):
             _col_name = str(_series.name)+"_"+security
             _series = _series.rename(_col_name)
             _df_ts = _df_ts.join(_series, how='left', rsuffix='').fillna(method='ffill')
-            _df_ts = returns_column(df=_df_ts, column=_col_name, outname=security)
+            _df_ts, _ = returns_column(df=_df_ts, column=_col_name, outname=security)
             cols.append(_col_name)
 
         self.returns = _df_ts.drop(cols, axis=1)
@@ -548,7 +548,7 @@ class Portfolio(Asset):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = returns_column(df=_benchmark.data, column='Close')
+        _benchmark.data, _ = returns_column(df=_benchmark.data, column='Close')
 
         self.benchmark = _benchmark
 
@@ -597,7 +597,7 @@ class TotalPortfolioValue(object):
         self.data = data
 
     def get_returns(self, column='Total'):
-        self.data = returns_column(df=self.data, column=column)
+        self.data, _ = returns_column(df=self.data, column=column)
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
@@ -613,7 +613,7 @@ class TotalPortfolioValue(object):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = returns_column(df=_benchmark.data, column='Close')
+        _benchmark.data, _ = returns_column(df=_benchmark.data, column='Close')
 
         self.benchmark = _benchmark
 

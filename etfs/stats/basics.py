@@ -21,13 +21,14 @@ def runrate_column(df=None, column=None, window=5, win_type=None):
     Returns
     =======
     df : dataframe with run rate appended as column + "_rr"
+    column_rr : name of newly added column
 
     """
     
     column_rr = column + '_rr' + str(window)
     df[column_rr] = df[column].rolling(window=window, win_type=win_type).mean()
 
-    return df
+    return df, column_rr
 
 
 def ewm_column(df=None, column=None, alpha=.8, ignore_na=True):
@@ -45,13 +46,14 @@ def ewm_column(df=None, column=None, alpha=.8, ignore_na=True):
     Returns
     =======
     df : dataframe with exponentially weighted moving average appended as column + "_ewm"
+    column_ewm : name of newly added column
 
     """
     
     column_ewm = column + '_ewm' + str(alpha)
     df[column_ewm] = df[column].ewm(alpha=alpha, ignore_na=ignore_na).mean()
 
-    return df
+    return df, column_ewm
 
 
 def resample_df(df=None, column=None, resolution='B'):
@@ -78,9 +80,8 @@ def standard_deviation_column(df=None, column=None, window=1, shift=1):
     Calculate the standard deviation of data - run rate
     """
     if window > 1:
-        column_rr = column + '_rr' + str(window)
         print("Calculating '{0}' run rate for window size {1}".format(column, window))
-        df = runrate_column(df=df, column=column, window=window)
+        df, column_rr = runrate_column(df=df, column=column, window=window)
     else:
         column_rr = column
 
@@ -95,7 +96,7 @@ def standard_deviation_column(df=None, column=None, window=1, shift=1):
     print("Standard deviation of '{0}' is {1}".format(column, df[column_squared_error].mean()))
     print("Average volatility of '{0}' is {1}".format(column, np.sqrt(df[column_squared_error].mean())))
 
-    return df
+    return df, column_squared_error
 
 
 def difference(df=None, column=None, start='1900-01-01', end='2100-01-01'):
@@ -133,7 +134,7 @@ def returns_column(df=None, column=None, uselogs=True, outname='Return'):
     else:
         _df[out_col] = _df.apply(lambda row: get_logratio(row[column], row[column_shift]), axis=1)
 
-    return _df.drop(column_shift, axis=1)
+    return _df.drop(column_shift, axis=1), out_col
 
 
 def rsq(sec1=None, sec2=None, col1='Close', col2='Close'):

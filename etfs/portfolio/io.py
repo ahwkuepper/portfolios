@@ -312,8 +312,6 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
 
 
 
-
-
 def import_portfolio_robinhood(username=None, password=None, name="Robinhood", free_stock=False):
     """
     Accesses Robinhood account and downloads transactions 

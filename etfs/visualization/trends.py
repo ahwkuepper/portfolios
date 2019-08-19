@@ -17,10 +17,8 @@ def plot_trend(security=None, column='Close', ndays=100, windows=[50,200]):
     windows = [window for window in windows if window < len(security.data)]
     cols = []
     for window in windows:
-        col = column+"_rr{0}".format(window)
-        cols.append(col)
-        security.data = runrate_column(security.data, column=column, window=window)
-        plt.plot(security.data.index[-ndays:], security.data[col][-ndays:], label='{0} days'.format(window))   
+        security.data, _column = runrate_column(security.data, column=column, window=window)
+        plt.plot(security.data.index[-ndays:], security.data[_column][-ndays:], label='{0} days'.format(window))   
     
     plt.legend()
 
@@ -34,10 +32,8 @@ def plot_ewm(security=None, column='Close', ndays=100, alphas=[.7,.3]):
     
     cols = []
     for alpha in alphas:
-        col = column+"_ewm{0}".format(alpha)
-        cols.append(col)
-        security.data = ewm_column(security.data, column=column, alpha=alpha)
-        plt.plot(security.data.index[-ndays:], security.data[col][-ndays:], label='alpha = {0}'.format(alpha))   
+        security.data, _column = ewm_column(security.data, column=column, alpha=alpha)
+        plt.plot(security.data.index[-ndays:], security.data[_column][-ndays:], label='alpha = {0}'.format(alpha))   
     
     plt.legend()
 

@@ -109,7 +109,7 @@ class Security(Asset):
         self.dividends = self.dividends + price*quantity
 
     def get_returns(self, column='Close'):
-        self.data = returns_column(df=self.data, column=column)
+        self.data, _ = returns_column(df=self.data, column=column)
 
     def get_benchmark(self, benchmark_ticker='^GSPC'):
         
@@ -127,6 +127,6 @@ class Security(Asset):
         _benchmark = Security(_ticker, start=self.min_date, end=self.max_date)
         
         # calculate returns for the benchmark
-        _benchmark.data = returns_column(df=_benchmark.data, column='Close', uselogs=True)
+        _benchmark.data, _ = returns_column(df=_benchmark.data, column='Close', uselogs=True)
 
         self.benchmark = _benchmark
