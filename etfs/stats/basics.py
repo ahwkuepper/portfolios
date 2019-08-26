@@ -31,7 +31,7 @@ def runrate_column(df=None, column=None, window=5, win_type=None):
     return df, column_rr
 
 
-def ewm_column(df=None, column=None, alpha=.8, ignore_na=True):
+def ewm_column(df=None, column=None, alpha=.8, ignore_na=True, func='mean'):
     """
     Calculate the exponentially weighted moving average 
     of a column, and add it as a new column.
@@ -51,8 +51,16 @@ def ewm_column(df=None, column=None, alpha=.8, ignore_na=True):
     """
     
     column_ewm = column + '_ewm' + str(alpha)
-    df[column_ewm] = df[column].ewm(alpha=alpha, ignore_na=ignore_na).mean()
-
+    if func == 'mean':
+        column_ewm = column_ewm + '_mean'
+        df[column_ewm] = df[column].ewm(alpha=alpha, ignore_na=ignore_na).mean()
+    elif func == 'var':
+        column_ewm = column_ewm + '_var'
+        df[column_ewm] = df[column].ewm(alpha=alpha, ignore_na=ignore_na).var()
+    elif func == 'std':
+        column_ewm = column_ewm + '_std'
+        df[column_ewm] = df[column].ewm(alpha=alpha, ignore_na=ignore_na).std()
+    
     return df, column_ewm
 
 

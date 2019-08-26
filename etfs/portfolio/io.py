@@ -7,6 +7,8 @@ from math import ceil
 from etfs.portfolio.portfolio import Portfolio
 import os
 import glob
+import robin_stocks as r
+from getpass import getpass
 
 
 def parse_portfolio(df=None, p=None):
@@ -312,7 +314,7 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
 
 
 
-def import_portfolio_robinhood(username=None, password=None, name="Robinhood", free_stock=False):
+def import_portfolio_robinhood(access_token, username=None, password=None, name="Robinhood", free_stock=False):
     """
     Accesses Robinhood account and downloads transactions 
 
@@ -329,15 +331,13 @@ def import_portfolio_robinhood(username=None, password=None, name="Robinhood", f
     p : portfolio (Portfolio class object)
 
     """
-    import robin_stocks as r
-    from getpass import getpass
+    if not access_token:
+        if username is None: username = getpass("Username: ")
+        if password is None: password = getpass("Password: ")
 
-    if username is None: username = getpass("Username: ")
-    if password is None: password = getpass("Password: ")
-
-    # use Robinhood api to download transaction history
-    r.login(username, password)
-    
+        # use Robinhood api to access account and cancel all standing orders
+        r.login(username, password)
+  
     # build dataframe
     Date = []
     Transaction = []

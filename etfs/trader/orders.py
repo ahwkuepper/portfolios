@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import robin_stocks as r
+from getpass import getpass
 from etfs.stats.basics import ewm_column
 
 
@@ -33,7 +35,7 @@ def get_stop_loss_price(security=None, column="Close", alpha=.5, sigmas=2):
     return price
 
 
-def put_in_stop_loss_orders_all(username=None, password=None, portfolio=None, column="Close", alpha=.5, sigmas=2):
+def put_in_stop_loss_orders_all(access_token=None, username=None, password=None, portfolio=None, column="Close", alpha=.5, sigmas=2):
     """
     Accesses Robinhood account and put in stop loss sell orders for all securities in a portfolio.
     Stop loss price is calculated as exponentially weighted average price and standard deviation.
@@ -51,20 +53,25 @@ def put_in_stop_loss_orders_all(username=None, password=None, portfolio=None, co
 
     """
 
-    import robin_stocks as r
-    from getpass import getpass
     import time
 
-    if username is None: username = getpass("Username: ")
-    if password is None: password = getpass("Password: ")
+    if not access_token:
+        if username is None: username = getpass("Username: ")
+        if password is None: password = getpass("Password: ")
 
-    # use Robinhood api to access account and cancel all standing orders
-    r.login(username, password)
+        # use Robinhood api to access account 
+        r.login(username, password)
+
+    # check if positions_df exists and if not get current positions
+    try: portfolio.positions_df
+    except AttributeError: portfolio.positions_df = None
+    if portfolio.positions_df is None:
+        portfolio.positions()
+    positions_data = r.get_current_positions()
+
+    # cancel all standing orders
     r.cancel_all_open_orders()
 
-    # get current positions
-    portfolio.positions()
-    positions_data = r.get_current_positions()
 
     # calculate stop loss prices
     for ticker in portfolio.tickers:
@@ -93,7 +100,7 @@ def put_in_stop_loss_orders_all(username=None, password=None, portfolio=None, co
             r.order_sell_stop_loss(ticker,quantity,portfolio.securities[ticker].stop_loss_price)
 
             # Wait for a few seconds to not get thrown off Robinhood
-            time.sleep(5)
+            time.sleep(1)
 
         else:
             print("Disagreement: ", ticker, portfolio.positions_df.Quantity[ticker], float(stock_data['quantity']))
