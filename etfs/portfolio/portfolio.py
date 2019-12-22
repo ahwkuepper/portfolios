@@ -213,19 +213,26 @@ class Portfolio(Asset):
 
     def sell_security(self, date, ticker, currency='USD', price=None, quantity=0):
 
-        # store point in time value in wallet
-        self.wallet = self.wallet.append({'Date': date,
-                                          'Change': 1.0*price*quantity
-                                          }, ignore_index=True).sort_values('Date')
-
         # get closing price of security for transaction date if price not provided
         if np.isnan(price):
             price = self.securities[ticker].get_price_at(date)
 
         # remove number of securities from prices deque
         for i in range(np.int(quantity)):
-            _ = self.prices_fifo[ticker].popleft()
-            _ = self.prices_lifo[ticker].pop()
+                _ = self.prices_fifo[ticker].popleft()
+                _ = self.prices_lifo[ticker].pop()
+
+        # make sure security is fully removed, correct for rounding errors
+        _df = self.transactions.loc[self.transactions.Transaction.isin(('buy', 'sell')), :].copy()
+        _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
+        # set quantity to exactly match remaining quantity in portfolio
+        if _df.groupby(by=['Ticker'])['Quantity'].sum()[ticker] <= quantity*1.0001:
+            quantity = _df.groupby(by=['Ticker'])['Quantity'].sum()[ticker]
+
+        # store point in time value in wallet
+        self.wallet = self.wallet.append({'Date': date,
+                                          'Change': 1.0*price*quantity
+                                          }, ignore_index=True).sort_values('Date')
 
         # store transaction in df
         self.transactions = self.transactions.append({'Date': date,
@@ -244,7 +251,7 @@ class Portfolio(Asset):
         # potentially remove ticker from list
         _df = self.transactions.loc[self.transactions.Transaction.isin(('buy', 'sell')), :].copy()
         _df.loc[_df.Transaction == 'sell', 'Quantity'] = _df.loc[_df.Transaction == 'sell', 'Quantity'].apply(lambda x: -x)
-        if _df.groupby(by=['Ticker'])['Quantity'].sum()[ticker] <= 0.0:
+        if _df.groupby(by=['Ticker'])['Quantity'].sum()[ticker] <= 0.0001:
             self.remove_security(ticker)
             # print('removing', ticker)
 
@@ -315,7 +322,7 @@ class Portfolio(Asset):
         # update portfolio stats
         self.total_security_value = self.overview_df[['CurrentValue']].sum().values[0]
         self.total_portfolio_value = self.total_security_value + self.cash
-        self.return_value = self.total_security_value + self.cash - self.payments['In'].sum()
+        self.return_value = self.total_security_value + self.cash - self.payments['In'].sum() + self.payments['Out'].sum()
         if self.total_portfolio_value:
             self.return_rate = self.return_value/self.total_portfolio_value
         else:
@@ -496,7 +503,7 @@ class Portfolio(Asset):
 
         # calculate portfolio value
         _df = self.payments.groupby(by=["Date"]).sum().cumsum()
-        _df["Total_deposited"] = _df["In"] + _df["Out"]
+        _df["Total_deposited"] = _df["In"] - _df["Out"]
         _df_ts = _df_ts.join(_df, how='left', rsuffix='').fillna(method='ffill')
         _df_ts["Growth"] = _df_ts["Total"]/_df_ts["Total_deposited"]
 

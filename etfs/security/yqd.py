@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+# See dicusssion on stackoverflow for possible extension of this module:
+# https://stackoverflow.com/questions/44030983/yahoo-finance-url-not-working
+
+
+
 """
 Created on Thu May 18 22:58:12 2017
 @author: c0redumb
