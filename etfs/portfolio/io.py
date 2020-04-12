@@ -387,7 +387,7 @@ def import_portfolio_robinhood(
     Quantity = []
 
     # parse order history
-    orders = r.get_all_orders()
+    orders = r.get_all_stock_orders()
     print("Parsing orders ...")
     for order in orders:
         if len(order["executions"]):
