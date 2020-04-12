@@ -1,4 +1,5 @@
 README.md
+setup.py
 etfs/__init__.py
 etfs.egg-info/PKG-INFO
 etfs.egg-info/SOURCES.txt

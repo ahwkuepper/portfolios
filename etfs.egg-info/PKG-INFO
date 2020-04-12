@@ -55,8 +55,9 @@ Description: # etfs: security analysis toolkit
           - run rate (e.g., 50-day / 200-day moving average)
           - exponentially weighted moving average
           - resampling (e.g., day, week, month)
+          - standard deviation
           - variance
-          - :math:`R^2`
+          - `R^2`
           - beta
           - alpha
         
@@ -74,14 +75,14 @@ Description: # etfs: security analysis toolkit
         To install *etfs* clone or download the repository and execute
         
         ```sh
-        pip install setup.py
+        pip install .
         ```
         
         in the `etfs` directory, or execute
         
         
         ```sh
-        pip install -e setup.py
+        pip install -e .
         ```
         
         for installing in development mode.
