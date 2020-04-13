@@ -1,16 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import datetime as dt
+from datetime import datetime as dt
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
-
 import pandas_market_calendars as mcal
 
 
 def todays_date():
-    return "{0}{1:02}{2:02}".format(
-        dt.datetime.now().year, dt.datetime.now().month, dt.datetime.now().day
+    return "{0}{1:02}{2:02}".format(dt.now().year, dt.now().month, dt.now().day)
+
+
+def last_trading_day(date=None, exchange="NYSE"):
+    trading_cal = mcal.get_calendar(exchange)
+
+    if date:
+        today = pd.to_datetime(date)
+    else:
+        today = dt.now()
+    last_week = today - timedelta(weeks=1)
+
+    return pd.to_datetime(
+        max(trading_cal.valid_days(start_date=last_week, end_date=today).values)
     )
 
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import pandas as pd
-
 import matplotlib.pyplot as plt
+import pandas as pd
 from bokeh.io import output_notebook
 from bokeh.plotting import figure, output_file, show
+
 from etfs.stats.basics import ewm_column, runrate_column
 
 

@@ -3,11 +3,14 @@
 from datetime import datetime as dt
 from os import path
 
+import pandas as pd
+
 from etfs import Asset
 from etfs.security.io import (get_company_name, read_yahoo_csv,
                               retrieve_yahoo_quote)
 from etfs.stats.basics import returns_column
-from etfs.utils.helpers import standard_date_format, todays_date
+from etfs.utils.helpers import (last_trading_day, standard_date_format,
+                                todays_date)
 
 
 class Security(Asset):
@@ -44,23 +47,25 @@ class Security(Asset):
         print("Checking {}".format(filepath))
 
         if end == None:
-            end = todays_date()
+            end = last_trading_day()
 
-        start = standard_date_format(start)
-        end = standard_date_format(end)
+        start = standard_date_format(pd.to_datetime(start))
+        end = standard_date_format(last_trading_day(date=end))
 
         if path.isfile(filepath):
             self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
             csv_start = standard_date_format(self.data.index.min())
             csv_end = standard_date_format(self.data.index.max())
-            if (csv_end < end) | (csv_start > start):
+            if (pd.to_datetime(csv_end) < pd.to_datetime(end)) | (
+                pd.to_datetime(csv_start) > pd.to_datetime(start)
+            ):
                 _refresh_success = self.refresh(
                     datadir=datadir, start=min(start, csv_start), end=max(end, csv_end)
                 )
-                if _refresh_success:
-                    self.data = read_yahoo_csv(
-                        path=filepath, startdate=start, enddate=end
-                    )
+            else:
+                _refresh_success = 1
+            if _refresh_success:
+                self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
         else:
             self.data = retrieve_yahoo_quote(
                 ticker=self.ticker, startdate=start, enddate=end

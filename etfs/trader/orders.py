@@ -3,8 +3,8 @@
 from getpass import getpass
 
 import numpy as np
-
 import robin_stocks as r
+
 from etfs.stats.basics import ewm_column
 
 

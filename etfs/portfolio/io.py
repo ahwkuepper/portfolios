@@ -2,15 +2,18 @@
 
 import csv
 import glob
+import math as m
 import os
+from datetime import timedelta
 from getpass import getpass
 from math import ceil
 
 import numpy as np
 import pandas as pd
-
 import robin_stocks as r
+
 from etfs.portfolio.portfolio import Portfolio
+from etfs.utils.helpers import last_trading_day
 
 
 def parse_portfolio(df=None, p=None):
@@ -29,6 +32,9 @@ def parse_portfolio(df=None, p=None):
 
     """
 
+    # use a lower bound on the minimum number of days pulled
+    minimum_date_for_data = last_trading_day() - timedelta(weeks=1)
+
     # put input dataframe(s) in list
     dfs = []
     if type(df) == pd.core.frame.DataFrame:
@@ -37,8 +43,24 @@ def parse_portfolio(df=None, p=None):
         dfs.extend(df)
 
     # loop through list of dataframes
+    Tickers_all = []
     for df in dfs:
+        Tickers_all = Tickers_all + list(df.Ticker.values)
 
+    # load data for all securities
+    for ticker in list(set(Tickers_all)):
+        if ticker:
+            if ticker not in p.securities_archive:
+                if str(ticker).isalnum() & (str(ticker) != "nan"):
+                    print("Adding ", ticker)
+                    min_date = minimum_date_for_data
+                    for df in dfs:
+                        if ticker in list(set(df.Ticker)):
+                            first_date = min(df.loc[df.Ticker == ticker, "Date"].values)
+                            min_date = min(first_date, min_date)
+                    p.add_security_archive(ticker, min_date)
+
+    for df in dfs:
         # define a priority for transaction types so ordering makes sense
         df.loc[df.Transaction == "deposit", "Priority"] = 1
         df.loc[df.Transaction == "Contribution", "Priority"] = 1
@@ -145,6 +167,9 @@ def parse_portfolio_vanguard(df=None, p=None):
 
     """
 
+    # use a lower bound on the minimum number of days pulled
+    minimum_date_for_data = last_trading_day() - timedelta(weeks=1)
+
     # put input dataframe(s) in list
     dfs = []
     if type(df) == pd.core.frame.DataFrame:
@@ -153,6 +178,23 @@ def parse_portfolio_vanguard(df=None, p=None):
         dfs.extend(df)
 
     # loop through list of dataframes
+    Tickers_all = []
+    for df in dfs:
+        Tickers_all = Tickers_all + list(df.Ticker.values)
+
+    # load data for all securities
+    for ticker in list(set(Tickers_all)):
+        if ticker:
+            if ticker not in p.securities_archive:
+                if str(ticker).isalnum() & (str(ticker) != "nan"):
+                    print("Adding ", ticker)
+                    min_date = minimum_date_for_data
+                    for df in dfs:
+                        if ticker in list(set(df.Ticker)):
+                            first_date = min(df.loc[df.Ticker == ticker, "Date"].values)
+                            min_date = min(first_date, min_date)
+                    p.add_security_archive(ticker, min_date)
+
     for df in dfs:
         # define a priority for transaction types so ordering makes sense
         df.loc[df.Transaction == "deposit", "Priority"] = 1
@@ -389,11 +431,24 @@ def import_portfolio_robinhood(
     # parse order history
     orders = r.get_all_stock_orders()
     print("Parsing orders ...")
+
+    # pre-pull all tickers before creating order history df
+    Tickerset = []
+    for order in orders:
+        if len(order["executions"]):
+            Tickerset.append(order["instrument"])
+    Tickerset = list(set(Tickerset))
+
+    # make a lookup dict for ticker symbols
+    Tickersymbols = {}
+    for element in Tickerset:
+        Tickersymbols[element] = r.get_instrument_by_url(element)["symbol"]
+
     for order in orders:
         if len(order["executions"]):
             Date.append(pd.to_datetime(order["last_transaction_at"]))
             Transaction.append(order["side"])
-            Ticker.append(r.get_instrument_by_url(order["instrument"])["symbol"])
+            Ticker.append(Tickersymbols[order["instrument"]])
             Currency.append("USD")
             Price.append(order["average_price"])
             Quantity.append(order["quantity"])
@@ -417,7 +472,7 @@ def import_portfolio_robinhood(
         if dividend["state"] == "paid":
             Date.append(pd.to_datetime(dividend["paid_at"]))
             Transaction.append("dividend")
-            Ticker.append(r.get_instrument_by_url(dividend["instrument"])["symbol"])
+            Ticker.append(Tickersymbols[order["instrument"]])
             Currency.append("USD")
             Price.append(float(dividend["amount"]) / float(dividend["position"]))
             Quantity.append(dividend["position"])

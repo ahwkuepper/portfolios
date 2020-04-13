@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-import matplotlib.pyplot as plt
 import seaborn as sns
+
 from etfs.utils.helpers import restrict_to_trading_days
 
 

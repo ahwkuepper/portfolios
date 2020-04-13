@@ -184,22 +184,29 @@ class Portfolio(Asset):
                 )
             )
 
-    def add_security(self, ticker):
+    def add_security(self, ticker, min_date="2000-01-01"):
         if ticker in self.securities_archive:
             self.securities[ticker] = self.securities_archive[ticker]
             self.tickers.append(ticker)
         else:
-            _security = Security(ticker)
+            _security = Security(ticker, start=min_date)
             self.securities[_security.ticker] = _security
             self.tickers.append(ticker)
             self.prices[ticker] = deque()
             self.prices_lifo[ticker] = deque()
             self.prices_fifo[ticker] = deque()
 
-    def add_security_archive(self, ticker):
-        _security = Security(ticker)
-        self.securities_archive[_security.ticker] = _security
-        self.tickers_archive.append(ticker)
+    def add_security_archive(self, ticker, min_date="2000-01-01"):
+        if ticker in self.securities:
+            self.securities_archive[ticker] = self.securities[ticker]
+            self.tickers_archive.append(ticker)
+        else:
+            _security = Security(ticker, start=min_date)
+            self.securities_archive[_security.ticker] = _security
+            self.tickers_archive.append(ticker)
+            self.prices[ticker] = deque()
+            self.prices_lifo[ticker] = deque()
+            self.prices_fifo[ticker] = deque()
 
     def remove_security(self, ticker):
         # copy state of security to archive
@@ -610,6 +617,13 @@ class Portfolio(Asset):
                     self.positions_df.loc[
                         self.positions_df.index == ticker, "Description"
                     ] = self.securities[ticker].name
+                elif ticker in self.tickers_archive:
+                    self.positions_df.loc[
+                        self.positions_df.index == ticker, "LastPrice"
+                    ] = self.securities_archive[ticker].get_last_price()
+                    self.positions_df.loc[
+                        self.positions_df.index == ticker, "Description"
+                    ] = self.securities_archive[ticker].name
                 else:
                     _security = Security(ticker)
                     self.positions_df.loc[

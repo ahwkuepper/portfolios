@@ -15,9 +15,10 @@
 import os
 import sys
 
+import etfs
+
 sys.path.insert(0, os.path.abspath(".."))
 
-import etfs
 
 # -- Project information -----------------------------------------------------
 

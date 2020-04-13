@@ -5,8 +5,8 @@ import urllib.parse
 import urllib.request
 
 import pandas as pd
-
 from bs4 import BeautifulSoup
+
 from etfs.utils.helpers import standard_date_format, todays_date
 
 
