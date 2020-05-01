@@ -40,6 +40,7 @@ class Portfolio(Asset):
         self.transactions = pd.DataFrame(
             columns=["Date", "Transaction", "Ticker", "Currency", "Price", "Quantity"]
         )
+        self.date = standard_date_format(todays_date())
 
     def __iter__(self):
         return self
@@ -189,7 +190,7 @@ class Portfolio(Asset):
             self.securities[ticker] = self.securities_archive[ticker]
             self.tickers.append(ticker)
         else:
-            _security = Security(ticker, start=min_date)
+            _security = Security(ticker, start=min_date, end=self.date)
             self.securities[_security.ticker] = _security
             self.tickers.append(ticker)
             self.prices[ticker] = deque()
@@ -201,7 +202,7 @@ class Portfolio(Asset):
             self.securities_archive[ticker] = self.securities[ticker]
             self.tickers_archive.append(ticker)
         else:
-            _security = Security(ticker, start=min_date)
+            _security = Security(ticker, start=min_date, end=self.date)
             self.securities_archive[_security.ticker] = _security
             self.tickers_archive.append(ticker)
             self.prices[ticker] = deque()

@@ -20,6 +20,8 @@ class Security(Asset):
 
     def __init__(self, name, start="2000-01-01", end=None):
         super().__init__(name)
+        if end is None:
+            end = standard_date_format(todays_date())
         self.ticker = name
         self.set_name(name)
         self.load(start=start, end=end)
@@ -46,8 +48,8 @@ class Security(Asset):
         filepath = "{0}{1}.csv".format(datadir, self.ticker)
         print("Checking {}".format(filepath))
 
-        if end == None:
-            end = last_trading_day()
+        if end is None:
+            end = standard_date_format(todays_date())
 
         start = standard_date_format(pd.to_datetime(start))
         end = standard_date_format(last_trading_day(date=end))
@@ -77,7 +79,7 @@ class Security(Asset):
         Tries to load from csv first, then pulls from Yahoo!
         """
 
-        if end == None:
+        if end is None:
             end = todays_date()
 
         start = standard_date_format(start)
