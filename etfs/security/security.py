@@ -6,11 +6,9 @@ from os import path
 import pandas as pd
 
 from etfs import Asset
-from etfs.security.io import (get_company_name, read_yahoo_csv,
-                              retrieve_yahoo_quote)
+from etfs.security.io import get_company_name, read_yahoo_csv, retrieve_yahoo_quote
 from etfs.stats.basics import returns_column
-from etfs.utils.helpers import (last_trading_day, standard_date_format,
-                                todays_date)
+from etfs.utils.helpers import last_trading_day, standard_date_format, todays_date
 
 
 class Security(Asset):

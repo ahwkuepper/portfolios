@@ -4,8 +4,7 @@ from datetime import datetime as dt
 from os import path
 
 from etfs import Asset
-from etfs.treasury.io import (read_treasury_csv,
-                              retrieve_treasury_yield_curve_rates)
+from etfs.treasury.io import read_treasury_csv, retrieve_treasury_yield_curve_rates
 from etfs.utils.helpers import standard_date_format
 
 
