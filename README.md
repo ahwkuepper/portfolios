@@ -1,9 +1,9 @@
-# Portfolio
+# Portfolios
 
 
 ## Purpose
 
-*portfolio* is a Python package for combining, managing, and analyzing portfolios. It greatly simplifies aggregating data on equities and bonds, computing statistics on individual securities or entire portfolios, and finding trends or opportunities. 
+*portfolios* is a Python package for combining, managing, and analyzing portfolios. It greatly simplifies aggregating data on equities and bonds, computing statistics on individual securities or entire portfolios, and finding trends or opportunities. 
 
 
 ## Main Features
@@ -11,7 +11,7 @@
 
 Input features:
   - Easily retrieve free historical data from Yahoo! Finance and the U.S. Department of the Treasury.
-  - Link *portfolio* to Robinhood accounts and retrieve transaction data.
+  - Link *portfolios* to Robinhood accounts and retrieve transaction data.
   - Load in Vanguard portfolios (from a CSV file downloaded from a Vanguard account).
   - Create custom portfolios from CSV files with lists of transactions.
   - Retrieves historical price and volume data from Yahoo! Finance.
@@ -41,7 +41,7 @@ To install *portfolios* clone or download the repository and execute
 pip install .
 ```
 
-in the `portfolio` directory, or execute
+in the repository directory, or execute
 
 
 ```sh
