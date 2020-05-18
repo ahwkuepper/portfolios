@@ -15,7 +15,6 @@ from __future__ import print_function
 import time
 import urllib.error
 import urllib.parse
-
 # Use six to import urllib so it is working for Python2/3
 # from six.moves import urllib
 # If you don't want to use six, please comment out the line above
