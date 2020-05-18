@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from etfs.utils.helpers import restrict_to_trading_days
+from portfolios.utils.helpers import restrict_to_trading_days
 
 
 def plot_cross_correlation_matrix(portfolio=None):

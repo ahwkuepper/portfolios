@@ -5,7 +5,7 @@ from getpass import getpass
 import numpy as np
 import robin_stocks as r
 
-from etfs.stats.basics import ewm_column
+from portfolios.stats.basics import ewm_column
 
 
 def get_stop_loss_price(security=None, column="Close", alpha=0.5, sigmas=2):

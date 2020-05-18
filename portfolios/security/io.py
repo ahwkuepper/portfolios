@@ -9,8 +9,8 @@ import urllib.request
 import numpy as np
 import pandas as pd
 
-from etfs.security import yqd
-from etfs.utils.helpers import standard_date_format, todays_date, yahoo_date_format
+from portfolios.security import yqd
+from portfolios.utils.helpers import standard_date_format, todays_date, yahoo_date_format
 
 
 def read_yahoo_csv(path=None, startdate="2000-01-01", enddate=None):

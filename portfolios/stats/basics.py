@@ -3,7 +3,7 @@
 import numpy as np
 from scipy.stats import linregress
 
-from etfs.utils.helpers import restrict_to_trading_days
+from portfolios.utils.helpers import restrict_to_trading_days
 
 
 def runrate_column(df=None, column=None, window=5, win_type=None):

@@ -15,16 +15,16 @@
 import os
 import sys
 
-import etfs
+import portfolios
 
 sys.path.insert(0, os.path.abspath(".."))
 
 
 # -- Project information -----------------------------------------------------
 
-project = "etfs"
-copyright = "2018, Andreas Kuepper"
-author = "Andreas Kuepper"
+project = "portfolios"
+copyright = "2018, 2019, 2020 Andreas Kupper"
+author = "Andreas Kupper"
 
 # The short X.Y version
 version = ""
@@ -111,7 +111,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "etfsdoc"
+htmlhelp_basename = "portfoliosdoc"
 
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -124,7 +124,7 @@ html_theme = "alabaster"
 html_theme_options = {
     "show_powered_by": False,
     "github_user": "ahwkuepper",
-    "github_repo": "etfs",
+    "github_repo": "portfolios",
     "github_banner": True,
     "show_related": False,
     "note_bg": "#FFF59C",
@@ -152,7 +152,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "etfs.tex", "etfs Documentation", "Andreas Kuepper", "manual"),
+    (master_doc, "portfolios.tex", "Portfolios Documentation", "Andreas Kupper", "manual"),
 ]
 
 
@@ -160,7 +160,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "etfs", "etfs Documentation", [author], 1)]
+man_pages = [(master_doc, "portfolios", "Portfolios Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -171,10 +171,10 @@ man_pages = [(master_doc, "etfs", "etfs Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "etfs",
-        "etfs Documentation",
+        "portfolios",
+        "Portfolios Documentation",
         author,
-        "etfs",
+        "portfolios",
         "One line description of project.",
         "Miscellaneous",
     ),

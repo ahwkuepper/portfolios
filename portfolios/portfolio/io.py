@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 import robin_stocks as r
 
-from etfs.portfolio.portfolio import Portfolio
-from etfs.utils.helpers import last_trading_day
+from portfolios.portfolio.portfolio import Portfolio
+from portfolios.utils.helpers import last_trading_day
 
 
 def parse_portfolio(df=None, p=None):

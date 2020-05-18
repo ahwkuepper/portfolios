@@ -7,7 +7,7 @@ import urllib.request
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from etfs.utils.helpers import standard_date_format, todays_date
+from portfolios.utils.helpers import standard_date_format, todays_date
 
 
 def read_treasury_csv(path=None, startdate="2000-01-01", enddate=None):

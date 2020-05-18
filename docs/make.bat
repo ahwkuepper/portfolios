@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=etfs
+set SPHINXPROJ=portfolios
 
 if "%1" == "" goto help
 

@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 # make classes and selected functions available at the package level
-from etfs.basics.asset import Asset
-from etfs.portfolio.portfolio import Portfolio, TotalPortfolioValue
-from etfs.security.security import Security
-from etfs.treasury.treasury import Treasury
+from portfolios.basics.asset import Asset
+from portfolios.portfolio.portfolio import Portfolio, TotalPortfolioValue
+from portfolios.security.security import Security
+from portfolios.treasury.treasury import Treasury

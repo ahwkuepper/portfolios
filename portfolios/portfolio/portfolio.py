@@ -6,10 +6,10 @@ from collections import deque
 import numpy as np
 import pandas as pd
 
-from etfs import Asset
-from etfs.security.security import Security
-from etfs.stats.basics import returns_column
-from etfs.utils.helpers import standard_date_format, todays_date
+from portfolios import Asset
+from portfolios.security.security import Security
+from portfolios.stats.basics import returns_column
+from portfolios.utils.helpers import standard_date_format, todays_date
 
 
 class Portfolio(Asset):
