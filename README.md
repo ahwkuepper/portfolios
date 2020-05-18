@@ -1,33 +1,32 @@
-# etfs: security analysis toolkit
-
+# Portfolio
 
 
 ## Purpose
 
-*etfs* is a Python package that makes it easy to gather data on securities, compute statistics, and find trends. It offers a wide range of tools to analyze securities, such as stocks and bonds, or compositions of securities, such as portfolios or ETFs.
-
+*portfolio* is a Python package for combining, managing, and analyzing portfolios. It greatly simplifies aggregating data on equities and bonds, computing statistics on individual securities or entire portfolios, and finding trends or opportunities. 
 
 
 ## Main Features
 
 
 Input features:
-  - Load in Vanguard portfolios (from a CSV file downloaded from a Vanguard account) or other custom portfolios from a CSV file with a list of transactions (e.g. from RobinHood).
+  - Easily retrieve free historical data from Yahoo! Finance and the U.S. Department of the Treasury.
+  - Link *portfolio* to Robinhood accounts and retrieve transaction data.
+  - Load in Vanguard portfolios (from a CSV file downloaded from a Vanguard account).
+  - Create custom portfolios from CSV files with lists of transactions.
   - Retrieves historical price and volume data from Yahoo! Finance.
 
 Basic methods on historical price data:
-  - run rate (e.g., 50-day / 200-day moving average)
-  - exponentially weighted moving average
-  - resampling (e.g., day, week, month)
-  - standard deviation
-  - variance
-  - `R^2`
-  - beta
-  - alpha
+  - run rates (e.g., 50-day / 200-day moving average)
+  - exponentially weighted moving averages
+  - resampling of data (e.g., day, week, month)
+  - standard deviation / variance
+  - `R^2`, beta, alpha
+  - and many more
 
 Output:
   - detailed portfolio description (positions, current value, returns, investments, devestments)
-  - growth timeseries plots 
+  - historical growth timeseries plots 
   - candlestick plots
   - Heikin-Ashi plots
 
@@ -36,13 +35,13 @@ Output:
 ## Install
 
 
-To install *etfs* clone or download the repository and execute
+To install *portfolios* clone or download the repository and execute
 
 ```sh
 pip install .
 ```
 
-in the `etfs` directory, or execute
+in the `portfolio` directory, or execute
 
 
 ```sh
