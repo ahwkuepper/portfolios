@@ -16,13 +16,19 @@ class Security(Asset):
        Class that holds a single security and some useful functions
     """
 
-    def __init__(self, name, start="2000-01-01", end=None):
+    def __init__(self, name, start=None, end=None):
         super().__init__(name)
+        if start is None:
+            self.start = standard_date_format(last_trading_day("2000-01-01"))
+        else:
+            self.start = standard_date_format(last_trading_day(start))
         if end is None:
-            end = standard_date_format(todays_date())
+            self.end = standard_date_format(last_trading_day(todays_date()))
+        else:
+            self.end = standard_date_format(last_trading_day(end))
         self.ticker = name
         self.set_name(name)
-        self.load(start=start, end=end)
+        self.load(start=self.start, end=self.end)
         self.get_last_price()
         self.get_max_price()
         self.get_min_price()
@@ -39,21 +45,24 @@ class Security(Asset):
         except:
             self.name = name
 
-    def load(self, datadir="../data/", start="2000-01-01", end=None):
+    def load(self, datadir="../data/", start=None, end=None):
         """
         Tries to load from csv first, then pulls from Yahoo!
         """
         filepath = "{0}{1}.csv".format(datadir, self.ticker)
         print("Checking {}".format(filepath))
 
+        if start is None:
+            start = self.start
+        else:
+            start = standard_date_format(last_trading_day(start))
         if end is None:
-            end = standard_date_format(todays_date())
-
-        start = standard_date_format(pd.to_datetime(start))
-        end = standard_date_format(last_trading_day(date=end))
+            end = self.end
+        else:
+            end = standard_date_format(last_trading_day(end))
 
         if path.isfile(filepath):
-            self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
+            self.data = read_yahoo_csv(path=filepath)
             csv_start = standard_date_format(self.data.index.min())
             csv_end = standard_date_format(self.data.index.max())
             if (pd.to_datetime(csv_end) < pd.to_datetime(end)) | (
@@ -72,16 +81,19 @@ class Security(Asset):
             )
             self.save(filename="{}.csv".format(self.ticker), datadir=datadir)
 
-    def refresh(self, datadir="../data/", start="1900-01-01", end=None):
+    def refresh(self, datadir="../data/", start=None, end=None):
         """
         Tries to load from csv first, then pulls from Yahoo!
         """
 
+        if start is None:
+            start = self.start
+        else:
+            start = standard_date_format(last_trading_day(start))
         if end is None:
-            end = todays_date()
-
-        start = standard_date_format(start)
-        end = standard_date_format(end)
+            end = self.end
+        else:
+            end = standard_date_format(last_trading_day(end))
 
         try:
             self.data = retrieve_yahoo_quote(
