@@ -78,7 +78,16 @@ def plot_security_performance(portfolio=None, ticker=None):
     _df["AvgValue"] = _df[ticker] / _df.Quantity
 
     # Set up figure
-    f, axes = plt.subplots(ncols=1, nrows=3, sharex=True, figsize=(11, 9))
+    f, axes = plt.subplots(ncols=1, nrows=4, sharex=True, figsize=(11, 9))
+
+    # average price to value ratio
+    axes[3].plot(
+        _df.index,
+        _df.AvgPrice.values / _df.AvgValue.values,
+        label="Average price/value",
+    )
+    axes[3].axhline(y=1, linestyle=":")
+    axes[3].legend()
 
     # average value vs price
     axes[2].plot(_df.index, _df.AvgValue.values, label="Average value")

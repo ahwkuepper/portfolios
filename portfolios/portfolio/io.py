@@ -100,14 +100,19 @@ def parse_portfolio(df=None, p=None):
                     )
 
                     # FINRA fee of $.000119 per share up to $5.95
-                #                 _FINRAfee = min(max(ceil(0.0119*row['Quantity']), 1.0)/100.0, 5.95)
-                # SEC fee of $.000013 per trade of up to $1M
+                    _FINRAfee = min(
+                        max(ceil(0.0119 * row["Quantity"]), 1.0) / 100.0, 5.95
+                    )
 
-                # _SECfee = max(ceil(row['Quantity']*row['Price']/800.0), 1.0)/100.0
+                    # SEC fee of $.000013 per trade of up to $1M
+                    _SECfee = (
+                        max(ceil(row["Quantity"] * row["Price"] / 800.0), 1.0) / 100.0
+                    )
 
-                #                 p.wallet = p.wallet.append({'Date': row['Date'],
-                #                                            'Change': -_FINRAfee -_SECfee
-                #                                            }, ignore_index=True)
+                    p.wallet = p.wallet.append(
+                        {"Date": row["Date"], "Change": -_FINRAfee - _SECfee},
+                        ignore_index=True,
+                    )
 
                 elif str.lower(row["Transaction"]) == "deposit":
                     p.deposit_cash(
@@ -139,7 +144,7 @@ def parse_portfolio(df=None, p=None):
                         date=row["Date"],
                         ticker=row["Ticker"],
                         currency=row["Currency"],
-                        price=row["Price"],
+                        price=1.0,
                         quantity=row["Quantity"],
                     )
 
@@ -472,10 +477,10 @@ def import_portfolio_robinhood(
         if dividend["state"] == "paid":
             Date.append(pd.to_datetime(dividend["paid_at"]))
             Transaction.append("dividend")
-            Ticker.append(Tickersymbols[order["instrument"]])
+            Ticker.append(Tickersymbols[dividend["instrument"]])
             Currency.append("USD")
-            Price.append(float(dividend["amount"]) / float(dividend["position"]))
-            Quantity.append(dividend["position"])
+            Price.append(1.0)
+            Quantity.append(dividend["amount"])
 
     if free_stock == True:
         # include free stock (Robinhood promotion, not included in transaction history)
