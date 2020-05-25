@@ -100,15 +100,19 @@ def parse_portfolio(df=None, p=None):
                     )
 
                     # FINRA fee of $.000119 per share up to $5.95
-                    _FINRAfee = min(max(ceil(0.0119*row['Quantity']), 1.0)/100.0, 5.95)
-                    
-                    # SEC fee of $.000013 per trade of up to $1M
-                    _SECfee = max(ceil(row['Quantity']*row['Price']/800.0), 1.0)/100.0
+                    _FINRAfee = min(
+                        max(ceil(0.0119 * row["Quantity"]), 1.0) / 100.0, 5.95
+                    )
 
-                    p.wallet = p.wallet.append({
-                        'Date': row['Date'], 
-                        'Change': -_FINRAfee -_SECfee
-                        }, ignore_index=True)
+                    # SEC fee of $.000013 per trade of up to $1M
+                    _SECfee = (
+                        max(ceil(row["Quantity"] * row["Price"] / 800.0), 1.0) / 100.0
+                    )
+
+                    p.wallet = p.wallet.append(
+                        {"Date": row["Date"], "Change": -_FINRAfee - _SECfee},
+                        ignore_index=True,
+                    )
 
                 elif str.lower(row["Transaction"]) == "deposit":
                     p.deposit_cash(

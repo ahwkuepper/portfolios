@@ -6,11 +6,9 @@ from os import path
 import pandas as pd
 
 from portfolios import Asset
-from portfolios.security.io import (get_company_name, read_yahoo_csv,
-                                    retrieve_yahoo_data)
+from portfolios.security.io import get_company_name, read_yahoo_csv, retrieve_yahoo_data
 from portfolios.stats.basics import returns_column
-from portfolios.utils.helpers import (last_trading_day, standard_date_format,
-                                      todays_date)
+from portfolios.utils.helpers import last_trading_day, standard_date_format, todays_date
 
 
 class Security(Asset):
