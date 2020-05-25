@@ -479,7 +479,6 @@ def import_portfolio_robinhood(
             Transaction.append("dividend")
             Ticker.append(Tickersymbols[dividend["instrument"]])
             Currency.append("USD")
-            #            Price.append(float(dividend["amount"]) / float(dividend["position"]))
             Price.append(1.0)
             Quantity.append(dividend["amount"])
 
