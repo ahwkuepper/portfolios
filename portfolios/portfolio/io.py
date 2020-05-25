@@ -139,7 +139,7 @@ def parse_portfolio(df=None, p=None):
                         date=row["Date"],
                         ticker=row["Ticker"],
                         currency=row["Currency"],
-                        price=row["Price"],
+                        price=1.0,
                         quantity=row["Quantity"],
                     )
 
@@ -474,8 +474,9 @@ def import_portfolio_robinhood(
             Transaction.append("dividend")
             Ticker.append(Tickersymbols[order["instrument"]])
             Currency.append("USD")
-            Price.append(float(dividend["amount"]) / float(dividend["position"]))
-            Quantity.append(dividend["position"])
+            #            Price.append(float(dividend["amount"]) / float(dividend["position"]))
+            Price.append(1.0)
+            Quantity.append(dividend["amount"])
 
     if free_stock == True:
         # include free stock (Robinhood promotion, not included in transaction history)

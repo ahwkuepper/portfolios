@@ -7,7 +7,7 @@ import pandas as pd
 
 from portfolios import Asset
 from portfolios.security.io import (get_company_name, read_yahoo_csv,
-                                    retrieve_yahoo_quote)
+                                    retrieve_yahoo_data)
 from portfolios.stats.basics import returns_column
 from portfolios.utils.helpers import (last_trading_day, standard_date_format,
                                       todays_date)
@@ -78,7 +78,7 @@ class Security(Asset):
             if _refresh_success:
                 self.data = read_yahoo_csv(path=filepath, startdate=start, enddate=end)
         else:
-            self.data = retrieve_yahoo_quote(
+            self.data = retrieve_yahoo_data(
                 ticker=self.ticker, startdate=start, enddate=end
             )
             self.save(filename="{}.csv".format(self.ticker), datadir=datadir)
@@ -98,7 +98,7 @@ class Security(Asset):
             end = standard_date_format(last_trading_day(end))
 
         try:
-            self.data = retrieve_yahoo_quote(
+            self.data = retrieve_yahoo_data(
                 ticker=self.ticker, startdate=start, enddate=end
             )
             self.save(filename="{}.csv".format(self.ticker), datadir=datadir)
@@ -132,7 +132,12 @@ class Security(Asset):
         return self.std_price
 
     def get_price_at(self, date, column="Close"):
+        date = last_trading_day(date)
         return self.data.loc[self.data.index == date, column].values[0]
+
+    def modify_quantity(self, date, quantity):
+        date = last_trading_day(date)
+        return quantity * self.data.loc[self.data.index == date, "Modifier"].values[0]
 
     def dividend(self, currency, price, quantity):
         self.dividends = self.dividends + price * quantity

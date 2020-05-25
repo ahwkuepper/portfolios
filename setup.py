@@ -12,7 +12,7 @@ with open("LICENSE") as f:
 setup(
     name="portfolios",
     packages=["portfolios"],
-    version="0.1",
+    version="0.1.0",
     description="Manage your portfolios, analyze securities, build your own ETF-like mix of securities, and conveniently trade them on Robinhood.",
     long_description=readme,
     author="Andreas Kupper",

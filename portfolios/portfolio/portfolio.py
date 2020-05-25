@@ -228,8 +228,15 @@ class Portfolio(Asset):
             self.add_security_archive(ticker)
 
         # get closing price of security for transaction date if price not provided
-        if np.isnan(price):
-            price = self.securities[ticker].get_price_at(date)
+        try:
+            if np.isnan(price):
+                price = self.securities[ticker].get_price_at(date)
+        except:
+            if price is None:
+                price = self.securities[ticker].get_price_at(date)
+
+        # modify quantity for subsequent stock splits
+        quantity = self.securities[ticker].modify_quantity(date, quantity)
 
         for i in range(np.int(quantity)):
             self.prices[ticker].append(price)
@@ -267,8 +274,15 @@ class Portfolio(Asset):
     def sell_security(self, date, ticker, currency="USD", price=None, quantity=0):
 
         # get closing price of security for transaction date if price not provided
-        if np.isnan(price):
-            price = self.securities[ticker].get_price_at(date)
+        try:
+            if np.isnan(price):
+                price = self.securities[ticker].get_price_at(date)
+        except:
+            if price is None:
+                price = self.securities[ticker].get_price_at(date)
+
+        # modify quantity for subsequent stock splits
+        quantity = self.securities[ticker].modify_quantity(date, quantity)
 
         # remove number of securities from prices deque
         for i in range(np.int(quantity)):
@@ -282,6 +296,7 @@ class Portfolio(Asset):
         _df.loc[_df.Transaction == "sell", "Quantity"] = _df.loc[
             _df.Transaction == "sell", "Quantity"
         ].apply(lambda x: -x)
+
         # set quantity to exactly match remaining quantity in portfolio
         if _df.groupby(by=["Ticker"])["Quantity"].sum()[ticker] <= quantity * 1.0001:
             quantity = _df.groupby(by=["Ticker"])["Quantity"].sum()[ticker]
@@ -332,7 +347,7 @@ class Portfolio(Asset):
 
             # sum up by ticker
             _df = self.transactions.loc[
-                self.transactions.Transaction.isin(("buy", "sell")), :
+                self.transactions.Transaction.isin(("buy", "sell", "dividend")), :
             ].copy()
             _df.loc[_df.Transaction == "sell", "Quantity"] = _df.loc[
                 _df.Transaction == "sell", "Quantity"
@@ -340,13 +355,17 @@ class Portfolio(Asset):
             _df.loc[_df.Transaction == "sell", "TradeValue"] = _df.loc[
                 _df.Transaction == "sell", "TradeValue"
             ].apply(lambda x: -x)
+            _df.loc[_df.Transaction == "dividend", "TradeValue"] = _df.loc[
+                _df.Transaction == "dividend", "TradeValue"
+            ].apply(lambda x: -x)
+            _df.loc[_df.Transaction == "dividend", "Quantity"] = 0
             self.overview_df = _df.groupby(by=["Ticker"])[
                 "Quantity", "TradeValue"
             ].sum()
 
             # check if sum over volume of a security is < 0
             for index, row in self.overview_df.iterrows():
-                if row["Quantity"] < 0.0:
+                if row["Quantity"] < -0.0001:
                     print(
                         "Negative volume encountered: {0:5}\t{1}".format(
                             index, row["Quantity"]
@@ -354,7 +373,7 @@ class Portfolio(Asset):
                     )
 
             # restrict to securities with volume > 0
-            self.overview_df = self.overview_df.loc[self.overview_df.Quantity > 0]
+            self.overview_df = self.overview_df.loc[self.overview_df.Quantity > 0.0001]
 
             for ticker in self.tickers:
                 self.overview_df.loc[
@@ -392,6 +411,11 @@ class Portfolio(Asset):
                 + self.overview_df["Dividends"]
             )
 
+            # average price to value ratio
+            self.overview_df["AvgPriceToValue"] = (
+                self.overview_df["TradeValue"] / self.overview_df["CurrentValue"]
+            )
+
             # join in names of securities
             for ticker in self.tickers:
                 self.overview_df.loc[
@@ -411,6 +435,7 @@ class Portfolio(Asset):
                 "CurrentValue": [0],
                 "Dividends": [0],
                 "Return": [0],
+                "AvgPriceToValue": [0],
                 "Description": [np.nan],
             }
             self.overview_df = pd.DataFrame(data=_d, index=[""])
@@ -442,6 +467,7 @@ class Portfolio(Asset):
                     "CurrentValue",
                     "Dividends",
                     "Return",
+                    "AvgPriceToValue",
                     "Description",
                 ]
             ]
