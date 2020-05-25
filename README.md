@@ -14,7 +14,6 @@ Input features:
   - Link *portfolios* to Robinhood accounts and retrieve transaction data.
   - Load in Vanguard portfolios (from a CSV file downloaded from a Vanguard account).
   - Create custom portfolios from CSV files with lists of transactions.
-  - Retrieves historical price and volume data from Yahoo! Finance.
 
 Basic methods on historical price data:
   - run rates (e.g., 50-day / 200-day moving average)
