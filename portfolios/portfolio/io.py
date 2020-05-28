@@ -105,9 +105,10 @@ def parse_portfolio(df=None, p=None):
                     )
 
                     # SEC fee of $.000013 per trade of up to $1M
-                    _SECfee = (
-                        max(ceil(row["Quantity"] * row["Price"] / 800.0), 1.0) / 100.0
-                    )
+                    if not np.isnan(row["Price"]):
+                        _SECfee = max(ceil(row["Quantity"] * row["Price"] / 800.0), 1.0) / 100.0
+                    else:
+                        _SECfee = 0.000013 # need to find a better place to put this fee where price is known
 
                     p.wallet = p.wallet.append(
                         {"Date": row["Date"], "Change": -_FINRAfee - _SECfee},

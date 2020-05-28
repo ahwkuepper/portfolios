@@ -16,8 +16,9 @@ setup(
     description="Manage your portfolios, analyze securities, build your own ETF-like mix of securities, and conveniently trade them on Robinhood.",
     long_description=readme,
     author="Andreas Kupper",
-    author_email="",
+    author_email="ahwkuepper@gmail.com",
     url="https://github.com/ahwkuepper/portfolios",
     license=license,
+    python_requires='>=3.5, <4',
     install_requires=["pandas", "numpy"],
 )
