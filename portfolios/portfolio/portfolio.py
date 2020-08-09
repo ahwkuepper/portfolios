@@ -450,7 +450,10 @@ class Portfolio(Asset):
             + self.payments["Out"].sum()
         )
         if self.total_portfolio_value:
-            self.return_rate = self.return_value / self.total_portfolio_value
+            try:
+                self.return_rate = self.return_value / (self.payments["In"].sum() - self.payments["Out"].sum())
+            except:
+                self.return_rate = 0.0
         else:
             self.return_rate = 0.0
 

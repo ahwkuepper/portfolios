@@ -100,20 +100,20 @@ def parse_portfolio(df=None, p=None):
                     )
 
                     # FINRA fee of $.000119 per share up to $5.95
-                    _FINRAfee = min(
-                        max(ceil(0.0119 * row["Quantity"]), 1.0) / 100.0, 5.95
-                    )
+                    #_FINRAfee = min(
+                    #    max(ceil(0.0119 * row["Quantity"]), 1.0) / 100.0, 5.95
+                    #)
 
                     # SEC fee of $.000013 per trade of up to $1M
-                    if not np.isnan(row["Price"]):
-                        _SECfee = max(ceil(row["Quantity"] * row["Price"] / 800.0), 1.0) / 100.0
-                    else:
-                        _SECfee = 0.000013 # need to find a better place to put this fee where price is known
+                    #if not np.isnan(row["Price"]):
+                    #    _SECfee = max(ceil(row["Quantity"] * row["Price"] / 800.0), 1.0) / 100.0
+                    #else:
+                    #    _SECfee = 0.000013 # need to find a better place to put this fee where price is known
 
-                    p.wallet = p.wallet.append(
-                        {"Date": row["Date"], "Change": -_FINRAfee - _SECfee},
-                        ignore_index=True,
-                    )
+                    #p.wallet = p.wallet.append(
+                    #    {"Date": row["Date"], "Change": -_FINRAfee - _SECfee},
+                    #    ignore_index=True,
+                    #)
 
                 elif str.lower(row["Transaction"]) == "deposit":
                     p.deposit_cash(
@@ -210,10 +210,15 @@ def parse_portfolio_vanguard(df=None, p=None):
         df.loc[df.Transaction == "buy", "Priority"] = 2
         df.loc[df.Transaction == "Buy", "Priority"] = 2
         df.loc[df.Transaction == "Reinvestment", "Priority"] = 2
+        df.loc[df.Transaction == "Reinvestment (LT)", "Priority"] = 2
+        df.loc[df.Transaction == "Reinvestment (ST)", "Priority"] = 2
         df.loc[df.Transaction == "dividend", "Priority"] = 3
         df.loc[df.Transaction == "Dividend", "Priority"] = 3
+        df.loc[df.Transaction == "Capital gain (LT)", "Priority"] = 3
+        df.loc[df.Transaction == "Capital gain (ST)", "Priority"] = 3
         df.loc[df.Transaction == "sell", "Priority"] = 4
         df.loc[df.Transaction == "Sell", "Priority"] = 4
+        df.loc[df.Transaction == "Withdrawal", "Priority"] = 5
         df.loc[df.Transaction == "withdraw", "Priority"] = 5
         df.loc[df.Transaction == "Distribution", "Priority"] = 5
 
@@ -223,7 +228,10 @@ def parse_portfolio_vanguard(df=None, p=None):
             if row.notnull()["Date"]:
                 # print(row['Date'], row['Transaction'], row['Ticker'], row['Currency'], row['Price'], row['Quantity'], row['Dollars'])
 
-                if row["Transaction"] == "Buy":
+                if (
+                    row["Transaction"] == "Buy"
+                    or row["Transaction"] == "buy"
+                    ):
                     p.buy_security(
                         date=row["Date"],
                         ticker=row["Ticker"],
@@ -232,7 +240,10 @@ def parse_portfolio_vanguard(df=None, p=None):
                         quantity=row["Quantity"],
                     )
 
-                elif row["Transaction"] == "Sell":
+                elif (
+                    row["Transaction"] == "Sell"
+                    or row["Transaction"] == "sell"
+                    ):
                     p.sell_security(
                         date=row["Date"],
                         ticker=row["Ticker"],
@@ -245,6 +256,7 @@ def parse_portfolio_vanguard(df=None, p=None):
                     row["Transaction"] == "Contribution"
                     or row["Transaction"] == "Funds Received"
                     or row["Transaction"] == "Conversion (incoming)"
+                    or row["Transaction"] == "deposit"
                 ):
                     p.deposit_cash(
                         date=row["Date"],
@@ -253,15 +265,23 @@ def parse_portfolio_vanguard(df=None, p=None):
                         quantity=row["Dollars"],
                     )
 
-                elif row["Transaction"] == "Distribution":
+                elif (
+                    row["Transaction"] == "Distribution"
+                    or row["Transaction"] == "Withdrawal"
+                    or row["Transaction"] == "withdraw"
+                    ):
                     p.withdraw_cash(
                         date=row["Date"],
                         currency=row["Currency"],
                         price=1.0,
-                        quantity=row["Dollars"],
+                        quantity=-1.0*row["Dollars"],
                     )
 
-                elif row["Transaction"] == "Dividend":
+                elif (
+                    row["Transaction"] == "Dividend"
+                    or row["Transaction"] == "Capital gain (LT)"
+                    or row["Transaction"] == "Capital gain (ST)"
+                    ):
                     p.dividend(
                         date=row["Date"],
                         ticker=row["Ticker"],
@@ -270,7 +290,11 @@ def parse_portfolio_vanguard(df=None, p=None):
                         quantity=row["Dollars"],
                     )
 
-                elif row["Transaction"] == "Reinvestment" and row["Quantity"] != 0:
+                elif (
+                    row["Transaction"] == "Reinvestment"
+                    or row["Transaction"] == "Reinvestment (LT)"                    
+                    or row["Transaction"] == "Reinvestment (ST)"
+                    ) and row["Quantity"] != 0:
                     p.buy_security(
                         date=row["Date"],
                         ticker=row["Ticker"],
@@ -369,8 +393,8 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
                 "Trade Date",
                 "Transaction Type",
                 "Symbol",
-                "Share Price",
                 "Shares",
+                "Share Price",
                 "Principal Amount",
             ],
             parse_dates=["Trade Date"],
