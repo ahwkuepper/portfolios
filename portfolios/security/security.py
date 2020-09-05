@@ -136,9 +136,9 @@ class Security(Asset):
     def modify_quantity(self, date, quantity):
         date = last_trading_day(date)
         try:
-            return quantity * self.data.loc[self.data.index == date, "Modifier"].values[0]
+            return quantity * self.data.loc[self.data.index == date, "Modifier"].values[0], self.data.loc[self.data.index == date, "Modifier"].values[0]
         except:
-            return quantity
+            return quantity, 1.0
 
     def dividend(self, currency, price, quantity):
         self.dividends = self.dividends + price * quantity

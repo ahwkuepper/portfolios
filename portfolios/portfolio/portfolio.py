@@ -227,16 +227,21 @@ class Portfolio(Asset):
         if ticker not in self.tickers_archive:
             self.add_security_archive(ticker)
 
+        # modify quantity for subsequent stock splits
+        quantity, modifier = self.securities[ticker].modify_quantity(date, quantity)
+
         # get closing price of security for transaction date if price not provided
+        # modify price according to stock splits
         try:
             if np.isnan(price):
                 price = self.securities[ticker].get_price_at(date)
+            else:
+                price = price / modifier
         except:
             if price is None:
                 price = self.securities[ticker].get_price_at(date)
-
-        # modify quantity for subsequent stock splits
-        quantity = self.securities[ticker].modify_quantity(date, quantity)
+            else:
+                price = price / modifier
 
         for i in range(np.int(quantity)):
             self.prices[ticker].append(price)
@@ -273,16 +278,21 @@ class Portfolio(Asset):
 
     def sell_security(self, date, ticker, currency="USD", price=None, quantity=0):
 
+        # modify quantity for subsequent stock splits
+        quantity, modifier = self.securities[ticker].modify_quantity(date, quantity)
+
         # get closing price of security for transaction date if price not provided
+        # modify price according to stock splits
         try:
             if np.isnan(price):
                 price = self.securities[ticker].get_price_at(date)
+            else:
+                price = price / modifier
         except:
             if price is None:
                 price = self.securities[ticker].get_price_at(date)
-
-        # modify quantity for subsequent stock splits
-        quantity = self.securities[ticker].modify_quantity(date, quantity)
+            else:
+                price = price / modifier
 
         # remove number of securities from prices deque
         for i in range(np.int(quantity)):
