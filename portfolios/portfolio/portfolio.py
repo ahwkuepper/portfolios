@@ -423,7 +423,7 @@ class Portfolio(Asset):
 
             # average price to value ratio
             self.overview_df["AvgPriceToValue"] = (
-                self.overview_df["TradeValue"] / self.overview_df["CurrentValue"]
+                self.overview_df["TradeValue"] / (self.overview_df["CurrentValue"] + self.overview_df["Dividends"])
             )
 
             # join in names of securities
