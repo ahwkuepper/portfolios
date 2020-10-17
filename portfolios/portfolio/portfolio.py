@@ -243,7 +243,9 @@ class Portfolio(Asset):
             else:
                 price = price / modifier
 
-        for i in range(np.int(quantity)):
+        # add number of securities to price deques
+        # multiply by 1000 to capture fractional shares
+        for i in range(np.int(np.ceil(quantity*1000))):
             self.prices[ticker].append(price)
             self.prices_lifo[ticker].append(price)
             self.prices_fifo[ticker].append(price)
@@ -294,8 +296,9 @@ class Portfolio(Asset):
             else:
                 price = price / modifier
 
-        # remove number of securities from prices deque
-        for i in range(np.int(quantity)):
+        # remove number of securities from price deques
+        # multiply by 1000 to capture fractional shares
+        for i in range(np.int(np.floor(quantity*1000))):
             _ = self.prices_fifo[ticker].popleft()
             _ = self.prices_lifo[ticker].pop()
 
