@@ -3,13 +3,23 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to portfolios' documentation!
-================================
+Portfolios
+**********
+
+.. automodule:: portfolios
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+
+Security
+========
+
+A detailed description of the security class will follow.
+
+.. autoclass:: portfolios.security
+   :members:
 
 
 Indices and tables
