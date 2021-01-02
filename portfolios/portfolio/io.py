@@ -423,7 +423,7 @@ def import_portfolio_vanguard(path="", name="Vanguard"):
 
 
 def import_portfolio_robinhood(
-    access_token, username=None, password=None, name="Robinhood", free_stock=False
+    access_token, username=None, password=None, name="Robinhood", free_stock=False, merger=False
 ):
     """
     Accesses Robinhood account and downloads transactions 
@@ -516,6 +516,23 @@ def import_portfolio_robinhood(
         Currency.append("USD")
         Price.append(0.0)
         Quantity.append(1.0)
+
+    if merger == True:
+        print("Manually adding LVGO-TDOC company merger ...")
+        # first sell all 5 LVGO shares
+        Date.append(pd.to_datetime("2020-10-30"))
+        Transaction.append("sell")
+        Ticker.append("LVGO")
+        Currency.append("USD")
+        Price.append(139.770004+4.24) #closing stock price and cash compensation
+        Quantity.append(5.0)
+        # then add TDOC shares
+        Date.append(pd.to_datetime("2020-10-30"))
+        Transaction.append("buy")
+        Ticker.append("TDOC")
+        Currency.append("USD")
+        Price.append(139.770004/0.5920)
+        Quantity.append(2.0)
 
     # build dataframe
     d = {
